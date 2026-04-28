@@ -575,14 +575,88 @@ else
   echo "[OK] Orquestador presente y ejecutable"
 fi
 
-# 3. Subcomandos esperados del orquestador
+# 3. Stack Docker (pieza fundamental — daemon, compose v2, compose files, servicios)
+echo "--- Stack Docker ---"
+
+# D1. Daemon vivo
+if ! docker info >/dev/null 2>&1; then
+  echo "[FAIL] Docker daemon no responde — arrancar dockerd o verificar permisos del socket (grupo 'docker')"
+  ERRORS=$((ERRORS + 1))
+else
+  echo "[OK] Docker daemon vivo"
+fi
+
+# D2. compose v2 (manage.sh asume CLI plugin v2, no docker-compose legacy)
+if ! docker compose version >/dev/null 2>&1; then
+  echo "[FAIL] 'docker compose' v2 no disponible — manage.sh asume CLI plugin v2"
+  ERRORS=$((ERRORS + 1))
+else
+  echo "[OK] docker compose v2 disponible"
+fi
+
+# D3. Compose files referenciados por manage.sh existen físicamente
+COMPOSE_FILES=$(grep -hoE 'docker-compose[^[:space:]"'"'"']*\.ya?ml' scripts/manage.sh 2>/dev/null | sort -u)
+if [ -z "$COMPOSE_FILES" ]; then
+  echo "[INFO] Sin referencias a compose files en manage.sh — proyecto sin Docker o usa otro mecanismo"
+else
+  for f in $COMPOSE_FILES; do
+    if [ -f "$f" ]; then
+      echo "[OK] Compose file presente: $f"
+    else
+      echo "[FAIL] Compose file referenciado en manage.sh pero ausente en disco: $f"
+      ERRORS=$((ERRORS + 1))
+    fi
+  done
+fi
+
+# D4. Servicios mínimos declarados (override via EXPECTED_SERVICES env)
+EXPECTED_SERVICES="${EXPECTED_SERVICES:-backend db-test}"
+for svc in $EXPECTED_SERVICES; do
+  found=0
+  for f in $COMPOSE_FILES; do
+    [ -f "$f" ] || continue
+    if grep -qE "^[[:space:]]+${svc}:" "$f"; then found=1; break; fi
+  done
+  if [ $found -eq 1 ]; then
+    echo "[OK] Servicio compose '$svc' declarado"
+  else
+    echo "[FAIL] Servicio compose '$svc' no encontrado — adaptar EXPECTED_SERVICES si el proyecto usa otros nombres"
+    ERRORS=$((ERRORS + 1))
+  fi
+done
+
+# D5. Imagen test construida (warn si no — primer test:* la crea via build:test)
+TEST_IMG=$(docker images --format '{{.Repository}}:{{.Tag}}' 2>/dev/null | grep -E 'test-backend' | head -1)
+if [ -z "$TEST_IMG" ]; then
+  echo "[WARN] Imagen test no construida — primer 'test:*' la creará via build:test"
+else
+  echo "[OK] Imagen test presente: $TEST_IMG"
+  # D6. Label src_hash para freshness check robusto
+  IMG_HASH=$(docker image inspect "$TEST_IMG" --format '{{ index .Config.Labels "src_hash" }}' 2>/dev/null)
+  if [ -z "$IMG_HASH" ] || [ "$IMG_HASH" = "<no value>" ]; then
+    echo "[WARN] Imagen test sin label 'src_hash' — freshness check usará fallback mtime (más falsos positivos)"
+  else
+    echo "[OK] Imagen test con label src_hash=$IMG_HASH"
+  fi
+fi
+
+# D7. Red externa proxy (info — relevante solo si 'up' prod la requiere)
+if grep -qE "external.*name.*proxy|networks:.*proxy" scripts/manage.sh docker-compose*.yml 2>/dev/null; then
+  if docker network ls --format '{{.Name}}' 2>/dev/null | grep -qE '^proxy$'; then
+    echo "[OK] Red externa 'proxy' presente"
+  else
+    echo "[INFO] Red externa 'proxy' no existe — 'up' prod fallará en esta máquina; usar 'up:dev'"
+  fi
+fi
+
+# 4. Subcomandos esperados del orquestador
 for cmd in test:status test:clean test:unit test:module build:test; do
   if ! ./scripts/manage.sh 2>&1 | grep -q "$cmd"; then
     echo "[WARN] Subcomando '$cmd' no documentado en manage.sh — adaptar workflows si difiere"
   fi
 done
 
-# 4. Paths del frontmatter resuelven (parametrizado por BACKEND_PATH)
+# 5. Paths del frontmatter resuelven (parametrizado por BACKEND_PATH)
 BACKEND_PATH="${BACKEND_PATH:-backend}"
 for p in "$BACKEND_PATH/services" "$BACKEND_PATH/routes" pytest.ini; do
   if [ ! -e "$p" ]; then
@@ -590,7 +664,7 @@ for p in "$BACKEND_PATH/services" "$BACKEND_PATH/routes" pytest.ini; do
   fi
 done
 
-# 5. Locales dinámicos
+# 6. Locales dinámicos
 LOCALES_DIR="${LOCALES_DIR:-client/public/locales}"
 if [ -d "$LOCALES_DIR" ]; then
   N_LOCALES=$(ls -d "$LOCALES_DIR"/*/ 2>/dev/null | wc -l)
@@ -599,13 +673,13 @@ else
   echo "[INFO] Sin i18n — workflow J no aplicable"
 fi
 
-# 6. Bug tracker dual
+# 7. Bug tracker dual
 ACTIVE="${BUG_TRACKER_ACTIVE:-docs/analysis/051_bug_tracker.md}"
 HISTORY="${BUG_TRACKER_HISTORY:-docs/analysis/051_bug_tracker_history.md}"
 [ -f "$ACTIVE" ] && echo "[OK] Bug tracker activo: $ACTIVE" || echo "[WARN] $ACTIVE ausente — crearlo con plantilla"
 [ -f "$HISTORY" ] && echo "[OK] Bug tracker history: $HISTORY" || echo "[WARN] $HISTORY ausente — crearlo con plantilla"
 
-# 7. Markers pytest
+# 8. Markers pytest
 PYTEST_INI="${PYTEST_INI:-pytest.ini}"
 [ -f "$PYTEST_INI" ] || PYTEST_INI="$BACKEND_PATH/pytest.ini"
 if [ -f "$PYTEST_INI" ]; then
@@ -616,7 +690,7 @@ else
   echo "[WARN] pytest.ini no encontrado en raíz ni en \$BACKEND_PATH ($BACKEND_PATH) — verificar configuración (CLAUDE.md §pytest)"
 fi
 
-# 8. Sync skill scripts ↔ repo scripts
+# 9. Sync skill scripts ↔ repo scripts
 for s in manage.sh mt.sh stripe_heavy_collect.py validate_migrations.sh; do
   [ ! -f "scripts/$s" ] && continue
   if [ ! -f "skills/testing-orchestration/scripts/$s" ]; then

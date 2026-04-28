@@ -52,10 +52,11 @@ Al adoptar la skill en un proyecto destino, **resolver las variables siguientes 
 **Pre-flight de adopción** — workflow opcional `/testing-orchestration self-check`:
 1. Verifica que el peer doc (`CLAUDE.md` o equivalente) existe y describe arquitectura, stack, credenciales test, comandos del orquestador.
 2. Verifica que `./scripts/<orquestador>` existe y es ejecutable.
-3. Verifica que paths del frontmatter resuelven a archivos del proyecto.
-4. Verifica que `pytest.ini` / `conftest.py` exponen markers usados (`stripe_integration`, `stripe_heavy`, `stripe_flaky`, `bg_flaky` o equivalentes — ver workflow B sync).
+3. Verifica el **stack Docker** (pieza fundamental de los requisitos arquitectónicos): daemon vivo, `docker compose` v2 disponible, compose files referenciados por el orquestador presentes en disco, servicios mínimos (`backend` + `db-test` o equivalentes según `CLAUDE.md` — override via `EXPECTED_SERVICES`) declarados, imagen test construida (warn si falta — primer `test:*` la crea), label `src_hash` para freshness por hash (warn si falta — fallback mtime aplica), red externa `proxy` si la requiere `up` prod (info — irrelevante en máquina dev pura).
+4. Verifica que paths del frontmatter resuelven a archivos del proyecto.
+5. Verifica que `pytest.ini` / `conftest.py` exponen markers usados (`stripe_integration`, `stripe_heavy`, `stripe_flaky`, `bg_flaky` o equivalentes — ver workflow B sync).
 
-Si self-check falla → **no usar la skill** hasta resolver. La skill **no es funcional** sin el peer doc + el orquestador.
+Si self-check falla → **no usar la skill** hasta resolver. La skill **no es funcional** sin el peer doc + el orquestador + Docker funcional.
 
 ## Estado del proyecto (precondición)
 
@@ -109,7 +110,7 @@ Casos típicos:
 | **H** | Validate migrations | edit `{{migrations_path}}*` | `validate_migrations.sh` | IDs únicos + chain coherente |
 | **I** | Sprint status | "report del sprint" | agrega runs + bugs + markers | reporte consolidado |
 | **J** | i18n coherence | edit `{{locales_path}}` | check N locales (lista dinámica) + cross-check user manual + tests | gaps reportados |
-| **K** | Self-check de adopción | `/testing-orchestration self-check` | 8 verificaciones (peer doc, orquestador, paths, locales, bug tracker dual, markers pytest, sync scripts, env vars) | 0 errores `[FAIL]` |
+| **K** | Self-check de adopción | `/testing-orchestration self-check` | 9 verificaciones (peer doc, orquestador, docker stack, paths, locales, bug tracker dual, markers pytest, sync scripts, env vars) | 0 errores `[FAIL]` |
 
 **Plan G envuelve a los demás** durante el diseño de feature/fix:
 
