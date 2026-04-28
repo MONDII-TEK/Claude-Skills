@@ -494,12 +494,29 @@ cmd_build_test() {
     local build_opts=$(parse_build_options "$@")
     header "Building Test Docker Images - Project: $TEST_PROJECT_NAME"
     local project_flags=$(get_test_project_flags)
+
+    # Compute SRC_HASH from backend/ source (excludes tests, __pycache__, *.pyc, *.egg-info).
+    # Mirrors the testing-orchestration skill freshness algorithm so the resulting
+    # image carries label src_hash=<16-char prefix>, enabling robust stale detection.
+    local src_hash=""
+    if [ -d "backend" ]; then
+        src_hash=$(find backend -type f -name '*.py' \
+            -not -path 'backend/tests/*' \
+            -not -path '*/__pycache__/*' \
+            -not -name '*.pyc' \
+            -not -name '*.egg-info*' \
+            2>/dev/null | sort | xargs sha256sum 2>/dev/null | sha256sum | cut -d' ' -f1 | head -c 16)
+        if [ -n "$src_hash" ]; then
+            info "Source hash: $src_hash"
+        fi
+    fi
+
     if [ -n "$build_opts" ]; then
         info "Building test images with options:$build_opts"
     else
         info "Building test images..."
     fi
-    COMPOSE_PROJECT_NAME="$TEST_PROJECT_NAME" $COMPOSE_CMD $project_flags -f "$COMPOSE_FILE" -f "$COMPOSE_TEST_FILE" build $build_opts
+    SRC_HASH="$src_hash" COMPOSE_PROJECT_NAME="$TEST_PROJECT_NAME" $COMPOSE_CMD $project_flags -f "$COMPOSE_FILE" -f "$COMPOSE_TEST_FILE" build $build_opts
     success "Test images built successfully!"
 }
 
