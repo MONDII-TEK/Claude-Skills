@@ -2670,8 +2670,19 @@ cmd_test_api() {
     header "Running API Tests (excluding background tasks)"
     _test_show_flags
 
-    local ignore_flags=$(_test_bg_ignore_flags)
-    _test_run "tests/test_api/ ${ignore_flags}" "API tests"
+    # Focalized run: positional args (paths and/or pytest expressions) override
+    # the default `tests/test_api/`. Same semantics as cmd_test_unit. Examples:
+    #   ./scripts/manage.sh test:api tests/test_api/test_credits_api.py
+    #   ./scripts/manage.sh test:api tests/test_api/ -k "credit or booking"
+    local api_paths
+    if [ ${#_TEST_ARGS[@]} -gt 0 ]; then
+        api_paths="${_TEST_ARGS[*]}"
+        _TEST_ARGS=()
+    else
+        local ignore_flags=$(_test_bg_ignore_flags)
+        api_paths="tests/test_api/ ${ignore_flags}"
+    fi
+    _test_run "$api_paths" "API tests"
 }
 
 # Run ONLY unit tests (services, storage, templates)
@@ -2681,7 +2692,23 @@ cmd_test_unit() {
     header "Running Unit Tests (services, storage, templates)"
     _test_show_flags
 
-    local unit_paths=$(_test_unit_paths)
+    # Focalized run: if positional args were passed (paths and/or pytest
+    # expressions), forward them as the test_path. The default
+    # `_test_unit_paths` (full unit suite) only kicks in when no positional
+    # args are present. Examples:
+    #   ./scripts/manage.sh test:unit backend/tests/test_unit/services/test_foo.py
+    #   ./scripts/manage.sh test:unit -k "Bug023 or rbac"
+    #   ./scripts/manage.sh test:unit backend/tests/test_unit/services/ -k Bug023
+    # Without focalization, _test_pytest_cmd would also re-emit _TEST_ARGS as
+    # "extras" (skipping the first element) — duplicating intent. Consume
+    # the array fully here to avoid that.
+    local unit_paths
+    if [ ${#_TEST_ARGS[@]} -gt 0 ]; then
+        unit_paths="${_TEST_ARGS[*]}"
+        _TEST_ARGS=()
+    else
+        unit_paths=$(_test_unit_paths)
+    fi
     _test_run "$unit_paths" "unit tests"
 }
 
