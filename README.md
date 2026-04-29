@@ -10,6 +10,87 @@ Catálogo de skills [Claude Code](https://claude.com/claude-code) mantenido por 
 
 > Fuente original: [IronVolt](https://github.com/MONDII-TEK/IronVolt) — proyecto de referencia donde nació la skill. La skill está diseñada **agnóstica al proyecto**: las variables de adopción (`{{backend_path}}`, `{{frontend_path}}`, etc.) se resuelven al instalar leyendo el `CLAUDE.md` del proyecto destino.
 
+---
+
+## `testing-orchestration` — referencia rápida
+
+### Comandos de activación (slash explícitos)
+
+Determinista — el usuario teclea el slash:
+
+| Comando | Workflow | Args | Para qué sirve |
+|---|---|---|---|
+| `/testing-orchestration` | — | sin args | Carga la skill manualmente |
+| `/testing-orchestration design <título>` | **G** plan-guardian | título freeform | Diseñar plan de test antes de empezar feature/fix (Service→Unit→Route→Integration→Build+RUN→Frontend→i18n→Manual→Docs) |
+| `/testing-orchestration run <test:cmd>` | **C** run + audit | comando `manage.sh` con flags | Ejecutar `test:unit / test:module / test:api / test:bg / test:stripe / test:full` y auditar el run dir generado |
+| `/testing-orchestration restart-dev` | **A** restart dev | sin args | `down → build prod/dev/test → up:dev` (ciclo de rebuild completo) |
+| `/testing-orchestration restart-test` | **B** restart test | sin args | Bajar test stack zombi y rebuild de la imagen test (pre-req limpio para `test:*`) |
+| `/testing-orchestration affected` | **E** detect afectados | sin args (lee `git diff`) | Identificar qué tests cubren el cambio actual y proponer `test:module` mínimo |
+| `/testing-orchestration manual <feature>` | **F** manual UI | nombre del flujo | Orquestar test manual desde la perspectiva del usuario en navegador |
+| `/testing-orchestration audit <run-dir>` | Audit standalone | path al run dir | Auditar `logs/test_runs/<ts>_<label>/` post-run (summary, errors, flaky markers) |
+| `/testing-orchestration validate-migrations` | **H** validate migrations | sin args | Validar Alembic (IDs duplicados, branches no intencionados, orphan `down_revision`) |
+| `/testing-orchestration status` | **I** sprint status | sin args | Reporte ejecutivo: últimos runs, bugs activos/cerrados, markers vivos, drift scripts↔skill |
+| `/testing-orchestration self-check` | **K** self-check | sin args | Verificar adopción de la skill al proyecto destino (CLAUDE.md, docker stack, env vars) |
+
+### Auto-trigger (modelo decide — sin teclear)
+
+Frases típicas que activan la skill por **description match**:
+
+| Trigger phrase | Workflow probable |
+|---|---|
+| "voy a añadir feature" / "diseñar plan" | G — plan-guardian |
+| "test:module …" / "test:stripe …" / "test:full" / "test:bg" / "test:unit" | C — run + audit |
+| "down y rebuild" / "rebuild test image" | A o B (restart) |
+| "qué tests cubren …" / "regression check" | E — detect afectados |
+| "manual test from user perspective" | F — manual UI |
+| "fix and re-run" | D — test → fix → re-run loop |
+| "valida migraciones" | H — validate migrations |
+| "report status" | I — sprint status |
+| "actualiza i18n" / "i18n missing locale" / "añade traducción" | J — i18n coherence |
+| `manage.sh` / `mt.sh` mencionado | C / D según contexto |
+
+### Workflows (resumen)
+
+| Letra | Nombre | Cuándo se activa | Resultado |
+|---|---|---|---|
+| **G** | Plan-guardian | Antes de empezar feature/fix | Plantilla de plan + checklist de capas a cubrir |
+| **A** | Restart dev | "down y rebuild de todo" | Stack dev limpio en `up:dev` |
+| **B** | Restart test stack | Antes de un `test:*` con zombi suspect | Test stack limpio, imagen test fresh |
+| **C** | Run + audit | Cualquier `test:*` invocado | Ejecuta + audita run dir + reporta markers |
+| **D** | Test → fix → re-run | Test rojo + fix aplicado | Loop sequencial hasta verde sin regresiones |
+| **E** | Detect afectados | Hay cambios staged/unstaged | Lista mínima de `test:*` que cubre el cambio |
+| **F** | Manual UI test | Feature user-facing nueva | Checklist navegador + golden path + edge cases |
+| **H** | Validate migrations | Antes de commit con nueva migración | Pasa/falla con dups, branches, orphans |
+| **I** | Sprint status | Reporte periódico | Snapshot ejecutivo de runs/bugs/markers |
+| **J** | i18n coherence | Cambio de strings UI | Verifica 4 locales sincronizados (es/en/fr/it) |
+| **K** | Self-check adopción | Tras instalar skill en otro repo | Reporta gaps de adopción (CLAUDE.md, env, paths) |
+
+### Scripts incluidos (`testing-orchestration/scripts/`)
+
+| Script | Lenguaje | Para qué sirve |
+|---|---|---|
+| [`manage.sh`](./testing-orchestration/scripts/manage.sh) | bash | Copia de referencia del orquestador del proyecto fuente. Se usa como **espejo** para detectar drift contra `<proyecto>/scripts/manage.sh` (ver `sync-skill-scripts.sh`). No se ejecuta directamente por la skill. |
+| [`mt.sh`](./testing-orchestration/scripts/mt.sh) | bash | Copia de referencia del helper `mt.sh` (manual test middleware con env: `BASE_URL`, `ADMIN_TOKEN`, `STRIPE_KEY`, restore membership, reset credits, force token refresh). Mismo rol: detectar drift. |
+| [`stripe_heavy_collect.py`](./testing-orchestration/scripts/stripe_heavy_collect.py) | python | Colecciona class-level nodeids para pytest 9+ (que cambió formato `--collect-only -q` de flat a tree). Lo usa el corredor de stripe_heavy para invocar pytest con isolación class-by-class. |
+| [`sync-skill-scripts.sh`](./testing-orchestration/scripts/sync-skill-scripts.sh) | bash | Pre-commit hook que falla el commit si `scripts/<X>` cambió pero `skills/testing-orchestration/scripts/<X>` no. Previene drift entre orquestador del repo y la copia de la skill. Adaptable vía `WATCHED_SCRIPTS` env var. |
+| [`validate_migrations.sh`](./testing-orchestration/scripts/validate_migrations.sh) | bash | Validador de Alembic: detecta IDs de revisión duplicados, branches no intencionados (multiple migraciones con mismo parent), y orphan `down_revision` references. Parametrizable vía `MIGRATIONS_DIR`. Invocado por workflow H. |
+
+### Documentación detallada (dentro de la skill)
+
+| Archivo | Contenido |
+|---|---|
+| [`SKILL.md`](./testing-orchestration/SKILL.md) | Entry point + adopción al proyecto + invariants + triggers |
+| [`workflows.md`](./testing-orchestration/workflows.md) | Detalle paso a paso de cada workflow A-K |
+| [`commands-reference.md`](./testing-orchestration/commands-reference.md) | Referencia exhaustiva de slash commands + ejemplos |
+| [`policies.md`](./testing-orchestration/policies.md) | Markers (`xfail`/`xpass`/`stripe_heavy`/`bg_heavy`), políticas de retry, exclusión |
+| [`stripe-integration.md`](./testing-orchestration/stripe-integration.md) | Patrones específicos para tests Stripe (sidecar, test_clocks, webhooks) |
+| [`manual-testing.md`](./testing-orchestration/manual-testing.md) | Guía operativa de tests manuales (workflow F) |
+| [`plan-template.md`](./testing-orchestration/plan-template.md) | Plantilla de plan-guardian (workflow G) |
+| [`bug-tracker-template.md`](./testing-orchestration/bug-tracker-template.md) | Esquema de `051_bug_tracker.md` (activo) + `_history.md` (cerrado) |
+| [`audit.md`](./testing-orchestration/audit.md) | Patrón de auditoría post-run (workflow C/D/F) |
+
+---
+
 ## Instalación en un proyecto consumidor
 
 Hay tres rutas. Elige según cómo quieras gestionar la dependencia:
