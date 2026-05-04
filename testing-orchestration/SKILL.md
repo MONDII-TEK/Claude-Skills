@@ -80,6 +80,14 @@ Esta skill **asume** que el peer doc del proyecto (`CLAUDE.md`) describe la arqu
 8. **Integration tests no mockean DB**.
 9. **User manual = source of truth** (`{{user_manual_path}}` si existe). Mantener en sync con cambios funcionales.
 10. **Bug tracker dual**: activo (`{{bug_tracker_active}}`, mínimo de abiertos) + gemelo (`{{bug_tracker_history}}`, append-only). Mover entrada en el commit que cierra el bug — operación cohesiva en un único commit (atomicidad delegada a git, no transaccional a nivel filesystem).
+11. **Auditoría inter-PR vs doc maestro** — en features grandes con plan vinculante (e.g. doc 063 logística DHL con §G matriz cobertura + §H test contracts), tras cerrar cada PR y antes de empezar el siguiente, auditar formalmente:
+    - **Decisiones cerradas (§G)** asignadas al PR mergeado → todas implementadas en código real.
+    - **Test contracts (§H)** asignados al PR → existen en `backend/tests/` y pasan en verde.
+    - **Invariantes** (§B plan maestro) → cumplidos (audit emission, JWT permission_required, idempotency, i18n 4 locales, tokens semánticos).
+    - **Drift del doc** → si hubo desvío de decisión cerrada, debe haber commit `docs(...)` previo al merge.
+    - **Regresión** → suite del módulo relacionado en verde.
+
+    Si la auditoría detecta gaps, completarlos en commits modulares **dentro del mismo branch** (no revertir el PR cerrado). NO arrancar el siguiente PR hasta cobertura 100%. El commit de cierre suele tener forma `test(...): cierre PR #N — test contract #X + ...`. Detalle completo de la regla en memoria del agente `feedback_inter_pr_audit.md`.
 
 ## Cuándo invocar esta skill
 
