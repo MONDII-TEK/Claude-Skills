@@ -785,56 +785,76 @@ curl -s http://<host>/api/version | jq .describe
 
 ### Mantenimiento de `RELEASE_NOTES.md`
 
-Cada release deja una entrada en `RELEASE_NOTES.md` (raíz del proyecto) en Markdown, pensada para que el admin dashboard pueda renderizarla tal cual como "dev notes". Tono dev (no marketing), bullets cortos, citas a rutas/comandos cuando ayuden.
+Cada release deja una entrada en `RELEASE_NOTES.md` (raíz del proyecto) en Markdown plano, pensada para que el admin dashboard la renderice tal cual y un compañero no técnico la entienda. **No es un changelog técnico**: el detalle técnico ya vive en commits, ADRs y docs internos.
+
+**Idioma**: redactar **en inglés**. El admin dashboard se sirve multi-locale y el inglés es el común para terceros, partners y clientes; las traducciones a otros idiomas se hacen aparte si procede (no entran aquí — esta nota es el documento maestro).
+
+**Tono**:
+- Lenguaje natural, frases cortas, voz activa.
+- Foco en QUÉ mejora ve la persona que actualiza, no en cómo lo hicimos.
+- Cero jerga técnica del proyecto: nada de nombres de servicios, modelos, endpoints, paths, IDs, columnas de BBDD, líneas de código.
+- Cero datos de cliente/proveedor concretos: ni nombres de empresas, ni códigos internos, ni referencias confidenciales que el cliente no quiera leer "en público" desde el dashboard.
+- Cero "marketing" inflado: dejarlo factual, sin emojis, sin "amazing", sin promesas vagas.
+- Comparar con el antes solo cuando aclara ("re-importing the same file no longer reports false movements"). No para fanfarriear.
+- Si un workflow cambia para el usuario, decirlo y dar la salida ("review them and fix the Excel if needed"). Si solo cambian internals, omitirlo del documento.
 
 **Estructura por entrada**:
 
 ```markdown
 ## vX.Y.Z — YYYY-MM-DD
 
-### Highlights
-- 2-4 bullets de impacto (lo que un admin debe saber sin leer el detalle).
-
-### Backend                   ← omitir secciones sin contenido
-### Frontend
-### Importador / data         ← solo si tocas el importador
-### Tests
-### Seguridad                 ← solo si hay cambios sensibles (gitignore, rotación, etc.)
-### Notas de operación        ← runbook breve: reseed, reimport, dashboards a mirar.
-### Breaking                  ← solo en --major
+### New          ← funcionalidad nueva visible para el usuario
+### Changes      ← mejoras o ajustes de comportamiento ya existente
+### Fixes        ← bugs resueltos que el usuario notaba
+### Notes        ← qué tener en cuenta tras actualizar (operación, breaking, deprecations)
 ```
+
+Omitir secciones sin contenido. Una entrada **bien escrita ocupa pocas líneas**: si una sección crece a >8 bullets, probablemente está mezclando detalles internos — refactoriza a frases más amplias.
 
 **Secuencia integrada en el workflow L**:
 
 ```bash
 # 1-2 igual que el bloque "Secuencia canónica" de arriba.
 
-# 2.5 — Recopilar lo que va en la entrada:
+# 2.5 — Recopilar lo que va en la entrada (insumo, no copia literal):
 git log v0.1.0..HEAD --oneline                # commits desde el último tag
 git log v0.1.0..HEAD --stat                   # diff stats por commit (orientativo)
 
-# 2.6 — Editar RELEASE_NOTES.md a mano (no auto-generar desde commits — los
-#       mensajes no siempre dicen lo que el admin necesita saber).
-#       Empezar la nueva entrada ARRIBA, justo después del bloque inicial,
-#       de forma que las versiones más recientes queden arriba.
+# 2.6 — Editar RELEASE_NOTES.md a mano EN INGLÉS y EN LENGUAJE NATURAL.
+#       NO auto-generar desde commits — los mensajes son técnicos.
+#       Pregúntate: "¿Qué le diría al cliente o al admin en 1 minuto?"
+#       Empezar la nueva entrada ARRIBA (newest on top).
 
-# 2.7 — git add RELEASE_NOTES.md && commit en el mismo PR/rama que los cambios,
-#       ANTES de ejecutar version:tag (el tag apunta a un commit que ya tiene
-#       sus dev notes incluidas).
+# 2.7 — git add RELEASE_NOTES.md && commit en el mismo PR/rama que los
+#       cambios, ANTES de ejecutar version:tag (el tag debe apuntar a un
+#       commit que ya tiene sus notas incluidas).
 
 # 3. version:tag --release --patch|--minor|--major  como antes.
 ```
 
-**Reglas**:
-- La entrada va **antes** del tag (mismo commit o uno previo). El tag debe apuntar a un commit cuyo `RELEASE_NOTES.md` ya describa esa versión.
-- Una entrada por tag, ordenadas **descendentes** (más reciente arriba).
-- Si tras el tag detectas que la entrada falta o está mal, NO reescribas la historia: añade una "Errata vX.Y.Z" como apéndice a la entrada inicial en el siguiente commit.
-- El archivo está pensado para ser consumido por el admin dashboard como notas — mantén Markdown estándar (sin macros, sin frontmatter).
+**Lista de chequeo antes de commitear la entrada**:
+- [ ] Está en inglés y se lee natural en voz alta.
+- [ ] No menciona nombres de servicios, modelos, archivos, endpoints, IDs.
+- [ ] No menciona nombres de clientes, proveedores o referencias internas confidenciales.
+- [ ] Cada bullet describe qué ve o experimenta el usuario, no qué hicimos en el código.
+- [ ] Si un cambio es puramente interno (refactor sin efecto visible), no aparece.
+- [ ] Una entrada por tag, en orden descendente, fecha = la del push del tag.
+
+**Reglas operativas**:
+- La entrada va **antes** del tag (mismo commit o uno previo). El tag apunta a un commit cuyo `RELEASE_NOTES.md` ya describe esa versión.
+- Si tras el tag detectas que la entrada falta o está mal, **no reescribas la historia**: añade una "Erratum vX.Y.Z" como apéndice a la entrada original en el siguiente commit.
+- Markdown estándar. Sin macros, sin frontmatter, sin HTML embebido.
+- **El archivo NO lleva header de meta-instrucciones.** Las convenciones (idioma, tono, secciones, etc.) viven aquí en la skill y NUNCA dentro de `RELEASE_NOTES.md` — el dashboard renderiza ese archivo a usuarios finales y un bloque de "cómo escribir release notes" sería ruido confuso. El archivo arranca directamente con `# Release notes` y debajo la primera entrada `## vX.Y.Z — …`.
 
 **Heurística de qué incluir según el bump**:
-- `--patch`: sección **Backend** o **Frontend** (lo que toques) + **Tests** si añadiste cobertura + **Notas de operación** si hay impacto operativo.
-- `--minor`: además del bloque patch, añadir **Highlights** explícito (qué módulo nuevo, qué pantalla, qué endpoint).
-- `--major`: obligatorio **Highlights** + **Breaking** detallando shape change, schema sin downgrade, contratos rotos, runbook de mitigación para consumers externos.
+- `--patch` (bugfix): casi siempre **Fixes** + a veces **Notes** (si hay impacto operativo). **Changes** solo si pulimos algo visible.
+- `--minor` (feature retrocompatible): **New** explícito + las secciones que apliquen.
+- `--major` (breaking): **New** + obligatorio **Notes** con migración/runbook para consumers externos.
+
+**Anti-patrones (no hacer)**:
+- `"compute_batch_landed_cost is now the single source of truth..."` → renombres internos no aportan.
+- `"Added /api/release-notes endpoint serving RELEASE_NOTES.md via mtime cache"` → detalle de implementación; el bullet correcto es `"Release notes are now reachable from the admin dashboard"`.
+- `"Customer X's invoice format updated"` → datos de cliente fuera; usar `"Invoice format aligned with the latest accounting requirements"` si es generalizable.
 
 **Comandos disponibles** (resumen):
 
