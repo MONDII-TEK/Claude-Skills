@@ -716,7 +716,7 @@ echo "=== Self-check completado: $ERRORS error(es) críticos ==="
 ## Workflow L — Release & versionado (semver bump previo al build)
 
 **Disparo**:
-- Frase: *"vamos a hacer release"*, *"bump version"*, *"tag de release"*, *"version:tag"*, *"deploy a NAS"*.
+- Frase: *"vamos a hacer release"*, *"bump version"*, *"tag de release"*, *"version:tag"*, *"deploy a NAS"*, *"release notes"*, *"dev notes"*, *"qué tenemos para push"*, *"estamos para push"*.
 - Slash: opcional, también disparable con `/loop` o directo.
 - Pre-requisito cuando un build de NAS / staging va a consumir el repo con tag estable identificable.
 
@@ -779,6 +779,62 @@ curl -s http://<host>/api/version | jq .describe
 - **No reusar nombre de tag** (`git tag -f` o `--force`). Tags semver son inmutables por contrato — si rompiste algo, bumpea otro patch.
 - **No mezclar formatos de tag.** Mantener `vX.Y.Z` semver puro; tags legacy como `v-n8n-integrations-round-closed` se ignoran automáticamente por el filtro `--match 'v[0-9]*'` del describe, pero no añadir nuevos del mismo estilo.
 - **No saltar `version:current` antes del bump.** Verifica desde qué base bumpeas — evita decidir `--major` cuando el `--minor` ya cubría.
+- **No tagear sin actualizar `RELEASE_NOTES.md`.** Cada tag merece su entrada (ver "Mantenimiento de RELEASE_NOTES" abajo) — la fricción es mínima y compensa con creces para auditoría futura y para el admin dashboard que puede renderizarlo.
+
+---
+
+### Mantenimiento de `RELEASE_NOTES.md`
+
+Cada release deja una entrada en `RELEASE_NOTES.md` (raíz del proyecto) en Markdown, pensada para que el admin dashboard pueda renderizarla tal cual como "dev notes". Tono dev (no marketing), bullets cortos, citas a rutas/comandos cuando ayuden.
+
+**Estructura por entrada**:
+
+```markdown
+## vX.Y.Z — YYYY-MM-DD
+
+### Highlights
+- 2-4 bullets de impacto (lo que un admin debe saber sin leer el detalle).
+
+### Backend                   ← omitir secciones sin contenido
+### Frontend
+### Importador / data         ← solo si tocas el importador
+### Tests
+### Seguridad                 ← solo si hay cambios sensibles (gitignore, rotación, etc.)
+### Notas de operación        ← runbook breve: reseed, reimport, dashboards a mirar.
+### Breaking                  ← solo en --major
+```
+
+**Secuencia integrada en el workflow L**:
+
+```bash
+# 1-2 igual que el bloque "Secuencia canónica" de arriba.
+
+# 2.5 — Recopilar lo que va en la entrada:
+git log v0.1.0..HEAD --oneline                # commits desde el último tag
+git log v0.1.0..HEAD --stat                   # diff stats por commit (orientativo)
+
+# 2.6 — Editar RELEASE_NOTES.md a mano (no auto-generar desde commits — los
+#       mensajes no siempre dicen lo que el admin necesita saber).
+#       Empezar la nueva entrada ARRIBA, justo después del bloque inicial,
+#       de forma que las versiones más recientes queden arriba.
+
+# 2.7 — git add RELEASE_NOTES.md && commit en el mismo PR/rama que los cambios,
+#       ANTES de ejecutar version:tag (el tag apunta a un commit que ya tiene
+#       sus dev notes incluidas).
+
+# 3. version:tag --release --patch|--minor|--major  como antes.
+```
+
+**Reglas**:
+- La entrada va **antes** del tag (mismo commit o uno previo). El tag debe apuntar a un commit cuyo `RELEASE_NOTES.md` ya describa esa versión.
+- Una entrada por tag, ordenadas **descendentes** (más reciente arriba).
+- Si tras el tag detectas que la entrada falta o está mal, NO reescribas la historia: añade una "Errata vX.Y.Z" como apéndice a la entrada inicial en el siguiente commit.
+- El archivo está pensado para ser consumido por el admin dashboard como notas — mantén Markdown estándar (sin macros, sin frontmatter).
+
+**Heurística de qué incluir según el bump**:
+- `--patch`: sección **Backend** o **Frontend** (lo que toques) + **Tests** si añadiste cobertura + **Notas de operación** si hay impacto operativo.
+- `--minor`: además del bloque patch, añadir **Highlights** explícito (qué módulo nuevo, qué pantalla, qué endpoint).
+- `--major`: obligatorio **Highlights** + **Breaking** detallando shape change, schema sin downgrade, contratos rotos, runbook de mitigación para consumers externos.
 
 **Comandos disponibles** (resumen):
 
