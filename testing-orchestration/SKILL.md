@@ -201,17 +201,20 @@ fi
 
 ## Smart run flags — matriz de decisión
 
-| Caso | Flags propuestos |
+**Defaults obligatorios del proyecto** (decisión del arquitecto 2026-05-27): TODO `test:*` se ejecuta con **`--no-failfast --debug`** salvo que el usuario explícitamente declare lo contrario. Razón: failfast oculta fallos múltiples y obliga a re-ejecutar; `--debug` aporta el output que la skill audita en post-run. El coste (tiempo extra y output más verboso) es aceptable frente a la falsa señal verde / información insuficiente. Aplica a `test:unit`, `test:module`, `test:api`, `test:bg`, `test:stripe`, `test:full`.
+
+| Caso | Flags propuestos (sobre los defaults) |
 |------|------------------|
-| Iteración rápida tras cambio puntual en un test | `--no-build --no-failfast` |
-| Validación pre-PR de un módulo | `-c` (coverage) + default failfast |
-| Debug de regresión confusa | `-d` + `--no-failfast` |
-| Suite completa pre-merge | `test:full -c` (sin debug) |
-| Repro de un solo test | `test:module <mod> -k "<expr>" --no-build` |
+| Iteración rápida tras cambio puntual en un test | `--no-build` (los defaults ya incluyen `--no-failfast --debug`) |
+| Validación pre-PR de un módulo | `-c` (coverage) sobre defaults |
+| Debug de regresión confusa | defaults (`--no-failfast --debug` ya cubren) |
+| Suite completa pre-merge | `test:full -c` con defaults |
+| Repro de un solo test | `test:module <mod> -k "<expr>" --no-build` con defaults |
 | Tras cambio de deps | `--no-cache` obligatorio |
 | Tras cambio de modelos | rebuild + `validate_migrations.sh` antes |
+| Override del default (failfast on) | usuario debe declarar explícitamente — la skill avisa |
 
-La skill propone los flags óptimos por caso; el usuario puede overridearlos. Sin override, defaults de la matriz.
+La skill propone los flags óptimos por caso sobre los defaults; el usuario puede overridearlos. Sin override, defaults de la matriz.
 
 ## Post-run audit (compartido por C/D/F)
 
