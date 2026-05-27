@@ -713,6 +713,91 @@ echo "=== Self-check completado: $ERRORS error(es) críticos ==="
 
 ---
 
+## Workflow L — Release & versionado (semver bump previo al build)
+
+**Disparo**:
+- Frase: *"vamos a hacer release"*, *"bump version"*, *"tag de release"*, *"version:tag"*, *"deploy a NAS"*.
+- Slash: opcional, también disparable con `/loop` o directo.
+- Pre-requisito cuando un build de NAS / staging va a consumir el repo con tag estable identificable.
+
+**Principios**:
+1. **Una sola máquina source-of-truth crea tags.** El comando `manage.sh version:tag` exige flag `--release` para impedir uso accidental en servers de deploy (dos máquinas creando `v0.5.1` en paralelo causaría colisión en `git push --tags`).
+2. **Los deploys NO crean tags; los consumen.** Cualquier server hace `git pull` → recibe el tag → `git describe` lo ve → el build embebe `GIT_DESCRIBE=v0.5.1` como build arg → `/api/version` lo expone.
+3. **La decisión `--patch|--minor|--major` es humana.** Inferencia automática es siempre frágil. Heurística clara abajo.
+
+**Heurística para decidir el bump** (aplicar consistentemente):
+
+| Bump | Cuándo | Ejemplos típicos del proyecto |
+|---|---|---|
+| `--patch` | Bugfix puntual, mejora UX menor, ajuste config. Sin tablas nuevas, sin endpoints nuevos, sin cambio de contrato. | Fix mapa multi-location (fitBounds), restore ownership rewrite, prompt MinIO sin ambigüedad. |
+| `--minor` | Feature nueva retrocompatible. Endpoints/tablas/módulos añadidos. Comportamiento previo intacto. | Nuevo módulo appointments, nueva integración (DHL, Amazon), nueva pantalla admin. |
+| `--major` | Breaking change. Schema sin rollback, contrato API roto, refactor que rompe consumers (mobile, ext). | Reescritura del modelo membership, cambio del payload n8n_auto_branding, migración Postgres sin downgrade seguro. |
+
+**Secuencia canónica** (release machine = dev local):
+
+```bash
+# 0. Pre-condición: working tree limpio + main al día con origin.
+git status                                    # debe ser "nothing to commit"
+git pull --ff-only origin main
+
+# 1. Verificar estado actual del versionado.
+./scripts/manage.sh version:current
+# Muestra: build label (GIT_DESCRIBE) + último tag semver + commits since.
+
+# 2. Decidir bump según la heurística arriba. Mensaje opcional.
+./scripts/manage.sh version:tag --release --patch -m "Fix mapa multi-location + restore ownership"
+# Equivalentes según caso:
+# ./scripts/manage.sh version:tag --release --minor -m "Módulo appointments fase pública"
+# ./scripts/manage.sh version:tag --release --major -m "Membership v2 (breaking)"
+
+# Output esperado: "[SUCCESS] Tag 'vX.Y.Z' pusheado a origin".
+
+# 3. Si necesitas verificar el tag antes de pushear (raro):
+./scripts/manage.sh version:tag --release --patch --local-only
+git show v0.0.1                               # inspeccionar
+git push origin v0.0.1                        # cuando estés conforme
+```
+
+**En los servers de deploy** (NAS, staging) — flujo NORMAL:
+
+```bash
+cd /volume1/docker/<stand>
+git pull                                      # trae tags via fetch automático
+./scripts/manage.sh build                     # GIT_DESCRIBE=vX.Y.Z embebido
+./scripts/manage.sh up:prod                   # /api/version expondrá vX.Y.Z
+```
+
+**Verificación post-deploy**:
+
+```bash
+curl -s http://<host>/api/version | jq .describe
+# Debe coincidir con el tag recién creado (e.g. "v0.1.0").
+```
+
+**Anti-patrones**:
+- **No crear tags desde NAS / server de deploy.** El guard `--release` te bloquea, pero la disciplina es no intentarlo.
+- **No reusar nombre de tag** (`git tag -f` o `--force`). Tags semver son inmutables por contrato — si rompiste algo, bumpea otro patch.
+- **No mezclar formatos de tag.** Mantener `vX.Y.Z` semver puro; tags legacy como `v-n8n-integrations-round-closed` se ignoran automáticamente por el filtro `--match 'v[0-9]*'` del describe, pero no añadir nuevos del mismo estilo.
+- **No saltar `version:current` antes del bump.** Verifica desde qué base bumpeas — evita decidir `--major` cuando el `--minor` ya cubría.
+
+**Comandos disponibles** (resumen):
+
+```bash
+./scripts/manage.sh version:current                          # solo lectura, cualquier máquina
+./scripts/manage.sh version:list [N]                         # últimos N tags semver
+./scripts/manage.sh version:tag --release --patch [-m "..."] # bump + push (default)
+./scripts/manage.sh version:tag --release --minor [-m "..."]
+./scripts/manage.sh version:tag --release --major [-m "..."]
+./scripts/manage.sh version:tag --release --patch --local-only   # opt-out de push
+```
+
+**Encaje con otros workflows**:
+- **Antes de A (restart dev)**: NO requiere release; A es para iterar local, GIT_DESCRIBE seguirá siendo `v0.1.0-N-g<sha>` hasta el siguiente tag.
+- **Antes de un deploy a NAS**: SÍ ejecuta L para que el build remoto tenga un identificador estable. Sin L, el NAS muestra `v0.1.0-37-g<sha>` que dificulta la trazabilidad incidente↔código.
+- **Después de fix crítico en producción**: ejecuta L `--patch` inmediato y avisa al deploy que rehaga `build + up`.
+
+---
+
 ## Resumen — relación entre workflows
 
 ```
@@ -740,4 +825,5 @@ H (migrations)      ─ standalone, auto-trigger por path
 I (sprint status)   ─ standalone bajo demanda
 J (i18n coherence)  ─ standalone, auto-trigger por path; G paso 9 también; locales dinámicos
 K (self-check)      ─ standalone, validar adopción al copiar la skill a un proyecto
+L (release/version) ─ standalone (dev local); pre-requisito de deploy a NAS/staging
 ```
