@@ -787,6 +787,8 @@ curl -s http://<host>/api/version | jq .describe
 
 Cada release deja una entrada en `RELEASE_NOTES.md` (raíz del proyecto) en Markdown plano, pensada para que el admin dashboard la renderice tal cual y un compañero no técnico la entienda. **No es un changelog técnico**: el detalle técnico ya vive en commits, ADRs y docs internos.
 
+**Obligatorio en cada push con commits**: cualquier push a `main` (o a la rama de release) que arrastre commits funcionales **debe ir acompañado de una entrada en `RELEASE_NOTES.md`**, aunque ese push no cree un tag todavía. La entrada cita los commits asociados y su intención agregada. Si todavía no hay tag, la entrada se redacta bajo la cabecera `## Unreleased — YYYY-MM-DD` (newest on top) y al ejecutar `version:tag` la cabecera se sustituye por la versión real. **Saltarse este paso pierde trazabilidad para el dashboard y para auditoría post-incidente**.
+
 **Idioma**: redactar **en inglés**. El admin dashboard se sirve multi-locale y el inglés es el común para terceros, partners y clientes; las traducciones a otros idiomas se hacen aparte si procede (no entran aquí — esta nota es el documento maestro).
 
 **Tono**:
@@ -797,6 +799,11 @@ Cada release deja una entrada en `RELEASE_NOTES.md` (raíz del proyecto) en Mark
 - Cero "marketing" inflado: dejarlo factual, sin emojis, sin "amazing", sin promesas vagas.
 - Comparar con el antes solo cuando aclara ("re-importing the same file no longer reports false movements"). No para fanfarriear.
 - Si un workflow cambia para el usuario, decirlo y dar la salida ("review them and fix the Excel if needed"). Si solo cambian internals, omitirlo del documento.
+
+**Formato (densidad)**:
+- Preferir **bullets cortos**. Una línea por idea; si una idea cabe en media línea, mejor.
+- Permitido **uno o dos párrafos sueltos** por entrada (encabezado o "Notes") cuando dan contexto que un bullet aislado no transmite. **No abusar** — si la entrada tiene más párrafos que bullets, recortar.
+- Cada bullet es una frase completa o casi; nada de listas anidadas profundas (un nivel de indent como máximo).
 
 **Estructura por entrada**:
 
@@ -816,8 +823,12 @@ Omitir secciones sin contenido. Una entrada **bien escrita ocupa pocas líneas**
 ```bash
 # 1-2 igual que el bloque "Secuencia canónica" de arriba.
 
-# 2.5 — Recopilar lo que va en la entrada (insumo, no copia literal):
-git log v0.1.0..HEAD --oneline                # commits desde el último tag
+# 2.5 — Recopilar lo que va en la entrada (insumo, no copia literal).
+#       SIEMPRE leer también el cuerpo de los commits, no solo el subject:
+#       los "qué hicimos" técnicos suelen estar en el subject, el "por
+#       qué" y el impacto al usuario suelen estar en el cuerpo.
+git log v0.1.0..HEAD --oneline                # subjects desde el último tag
+git log v0.1.0..HEAD                          # subjects + cuerpos completos
 git log v0.1.0..HEAD --stat                   # diff stats por commit (orientativo)
 
 # 2.6 — Editar RELEASE_NOTES.md a mano EN INGLÉS y EN LENGUAJE NATURAL.
