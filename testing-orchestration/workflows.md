@@ -789,6 +789,8 @@ Cada release deja una entrada en `RELEASE_NOTES.md` (raíz del proyecto) en Mark
 
 **Obligatorio en cada push con commits**: cualquier push a `main` (o a la rama de release) que arrastre commits funcionales **debe ir acompañado de una entrada en `RELEASE_NOTES.md`**, aunque ese push no cree un tag todavía. La entrada cita los commits asociados y su intención agregada. Si todavía no hay tag, la entrada se redacta bajo la cabecera `## Unreleased — YYYY-MM-DD` (newest on top) y al ejecutar `version:tag` la cabecera se sustituye por la versión real. **Saltarse este paso pierde trazabilidad para el dashboard y para auditoría post-incidente**.
 
+**Los fixes son control de cambios, no opcional**: la regla anterior aplica **igual** a `fix(...)` que a `feat(...)`. Cada bugfix que llega a producción modifica el contrato observable del sistema y por lo tanto **tiene que aparecer en `RELEASE_NOTES.md`** — el documento es la fuente oficial de control de cambios visible para operadores y clientes. Si un fix corrige algo que el usuario notaba (incluido un 500 silencioso o un toast genérico), entra en **Fixes**. Si solo corrige código interno sin efecto observable, entra en **Notes** con una línea ("documentation refresh", "internal refactor of X with no behaviour change") para que quede el rastro. **Nunca se mergea un fix a `main` sin tocar `RELEASE_NOTES.md`**.
+
 **Idioma**: redactar **en inglés**. El admin dashboard se sirve multi-locale y el inglés es el común para terceros, partners y clientes; las traducciones a otros idiomas se hacen aparte si procede (no entran aquí — esta nota es el documento maestro).
 
 **Tono**:
@@ -840,10 +842,11 @@ Cada push trae un conjunto cerrado de commits. La entrada en `RELEASE_NOTES.md` 
 
 3. **Clasificar cada commit en una sola sección**:
    - `feat(...)` → casi siempre **New**.
-   - `fix(...)` con cuerpo describiendo un bug que el usuario notaba → **Fixes**.
+   - `fix(...)` con cuerpo describiendo un bug que el usuario notaba → **Fixes**. Por defecto **todo `fix(...)` entra en Fixes**; descartarlo a "interno" requiere justificación explícita (no es la opción cómoda).
    - `fix(...)` que cambia comportamiento previo aunque no era estrictamente bug, o limpia UI → **Changes**.
-   - `chore(...)`, `refactor(...)`, `test(...)`, `docs(...)` puramente internos → **no entran** en la entrada.
+   - `chore(...)`, `refactor(...)`, `test(...)`, `docs(...)` puramente internos → **no entran** en la entrada **como bullet**, pero el push sigue requiriendo entrada (registrar el push entero en **Notes** con una línea: "internal refactor", "documentation refresh", etc.) cuando es el único contenido del push.
    - Excepción `docs(...)` user-visible (user manual, release notes operator-facing) → **Changes** o **Notes** según impacto.
+   - **Regla anti-omisión**: si dudas entre "interno" y "Fixes", el bullet va a **Fixes**. La entrada de release notes es el control de cambios oficial y prefiere falsos positivos legibles a falsos negativos invisibles.
 
 4. **Agrupar commits relacionados en un solo bullet**:
    - N commits sobre el mismo bloque (varios `fix(cost-audit): ...` consecutivos, varios `fix(work-orders-dialog): ...`) se redactan como **un bullet** que resume el efecto agregado para el usuario.
