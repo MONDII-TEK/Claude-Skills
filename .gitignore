@@ -1,0 +1,6 @@
+# RuVector local memory DB (Ruflo plugin runtime artifact). The
+# Ruflo `ruflo-core:researcher` and related agents persist embeddings
+# + memory graph state into a `redb` file in the current working
+# directory. It is per-user runtime cache, not a skill, and must
+# never enter the repository.
+ruvector.db
