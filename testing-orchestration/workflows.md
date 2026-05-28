@@ -818,6 +818,49 @@ Cada release deja una entrada en `RELEASE_NOTES.md` (raíz del proyecto) en Mark
 
 Omitir secciones sin contenido. Una entrada **bien escrita ocupa pocas líneas**: si una sección crece a >8 bullets, probablemente está mezclando detalles internos — refactoriza a frases más amplias.
 
+**Procedimiento de redacción a partir de los commits del push** (obligatorio):
+
+Cada push trae un conjunto cerrado de commits. La entrada en `RELEASE_NOTES.md` se redacta sobre **ese conjunto exacto**, sin más y sin menos. No es opinión sobre "el sprint en general", es el reflejo fiel de lo que se está pusheando.
+
+1. **Delimitar el alcance del push antes de redactar**:
+   - Localizar el último tag o el último commit ya cubierto en `RELEASE_NOTES.md` (lo que esté más adelante).
+   - Listar TODOS los commits que el push va a empujar:
+     ```bash
+     git log <base>..HEAD --pretty=format:"%h | %s"
+     git log <base>..HEAD                          # subjects + cuerpos
+     git log <base>..HEAD --stat                   # ficheros tocados
+     ```
+   - `<base>` = `origin/main` justo antes del push, o el último tag, lo que haya pasado más recientemente.
+   - El número de commits listados es el suelo de cuántas decisiones se mencionan en la entrada: ninguno se omite por error u olvido.
+
+2. **Leer cada commit hasta el final**:
+   - El **subject** describe el "qué hicimos" en jerga técnica — sirve para clasificar, no para copiar.
+   - El **cuerpo** justifica la decisión y casi siempre contiene la frase user-facing exacta que pertenece a la entrada (busca verbos como "now", "no longer", "instead of", "operator", "buyer", "user").
+   - Si el cuerpo está vacío o repite el subject, asume que el commit es interno y solo entra en la entrada si su efecto se ve desde fuera.
+
+3. **Clasificar cada commit en una sola sección**:
+   - `feat(...)` → casi siempre **New**.
+   - `fix(...)` con cuerpo describiendo un bug que el usuario notaba → **Fixes**.
+   - `fix(...)` que cambia comportamiento previo aunque no era estrictamente bug, o limpia UI → **Changes**.
+   - `chore(...)`, `refactor(...)`, `test(...)`, `docs(...)` puramente internos → **no entran** en la entrada.
+   - Excepción `docs(...)` user-visible (user manual, release notes operator-facing) → **Changes** o **Notes** según impacto.
+
+4. **Agrupar commits relacionados en un solo bullet**:
+   - N commits sobre el mismo bloque (varios `fix(cost-audit): ...` consecutivos, varios `fix(work-orders-dialog): ...`) se redactan como **un bullet** que resume el efecto agregado para el usuario.
+   - Mantener bullets atómicos cuando son independientes (un bug aislado = un bullet).
+   - Regla de control: si tras agrupar la sección sigue teniendo >8 bullets, los bullets están demasiado granulares — re-agrupar.
+
+5. **Reescribir, no copiar**:
+   - Cada bullet se redacta desde cero en lenguaje natural, sin nombres de servicios, paths, modelos o IDs (ver tono arriba).
+   - Cuando un commit aporta un dato concreto que ayuda a la lectura ("el cuerpo dice 'previously charged Standard regardless'"), úsalo en la entrada — los cuerpos son tu materia prima principal.
+
+6. **Verificación de cobertura antes del push**:
+   - Releer `git log <base>..HEAD --oneline` y la entrada en paralelo.
+   - Por cada commit, marcar mentalmente "¿está su efecto reflejado en algún bullet, o documentado por qué no entra?". Cero commits sin pareja.
+   - Si tras la cobertura faltan commits user-visible en la entrada, completarla **antes** del push.
+
+**Anti-patrón frecuente**: redactar la entrada a partir del último commit (el más vivo en memoria) y dejar fuera los anteriores del push. Si el push tiene 27 commits, la entrada cubre los 27, no solo `dacdf959`.
+
 **Secuencia integrada en el workflow L**:
 
 ```bash
