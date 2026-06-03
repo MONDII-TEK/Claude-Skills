@@ -22,8 +22,11 @@ REPO_SCRIPTS_DIR="$REPO_ROOT/scripts"
 [ ! -d "$SKILL_SCRIPTS_DIR" ] && exit 0  # skill no instalada, no aplicar
 
 # Lista de scripts watched: ampliar al adoptar la skill en otro proyecto
-# (añadir nombres separados por |, sin extensión: ej. "manage|mt|compose|dev")
-WATCHED_SCRIPTS="${WATCHED_SCRIPTS:-manage|mt|stripe_heavy_collect|validate_migrations}"
+# (añadir nombres separados por |, sin extensión: ej. "mt|compose|dev")
+# NOTA: `manage` NO se watchea — la skill ya NO bundlea su propia copia de manage.sh
+# (era ~280KB y derivaba constantemente). La skill referencia el `./scripts/manage.sh`
+# del proyecto directamente en sus docs. No re-añadir `manage` aquí.
+WATCHED_SCRIPTS="${WATCHED_SCRIPTS:-mt|stripe_heavy_collect|validate_migrations}"
 
 CHANGED_REPO_SCRIPTS=$(git diff --cached --name-only --diff-filter=AM | \
   grep -E "^scripts/($WATCHED_SCRIPTS)\.(sh|py)$" || true)
