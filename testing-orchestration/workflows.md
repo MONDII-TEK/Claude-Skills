@@ -128,19 +128,9 @@ Si el smoke test falla, NO declarar el restart como exitoso. Levantar logs (`./s
 
 **Smart**: `test:clean --keep-db` cuando solo se quiere bajar backend o sidecar y se sabe que el schema actual es válido (ahorra ~30s del recreate de db-test).
 
-**Sync check de scripts** (estrategia A copia, defensa secundaria — la primaria es el pre-commit hook):
-
-```bash
-for s in manage.sh mt.sh stripe_heavy_collect.py validate_migrations.sh; do
-  [ -f "scripts/$s" ] || continue  # opcional: el proyecto puede no tener todos
-  diff -q "scripts/$s" "skills/testing-orchestration/scripts/$s" > /dev/null 2>&1 || \
-    echo "[WARN] scripts/$s diverge de skill copy — actualizar la copia o instalar pre-commit hook"
-done
-```
-
-Si difieren → emite warning. **No bloquea** el restart de test (la skill puede funcionar contra el `scripts/` original mientras se sincroniza la copia), pero registra el drift en el reporte.
-
-**Drift prevention robusto (recomendado)**: instalar pre-commit hook que falle si `scripts/<X>` cambió y `skills/testing-orchestration/scripts/<X>` no se actualizó en el mismo commit. Ver instalación en SKILL.md §"Recursos adjuntos".
+> La skill ya **no bundlea copias** de los scripts del proyecto (manage.sh, mt.sh, …) ni hay
+> sync check / pre-commit hook que mantener: referencia directamente los `./scripts/*` del repo.
+> Ver SKILL.md §"Scripts del proyecto que la skill referencia".
 
 ---
 
@@ -431,13 +421,7 @@ TESTS_DIR="${TESTS_DIR:-${BACKEND_PATH:-backend}/tests}"
 grep -rnE "@pytest.mark.(xfail|stripe_flaky|bg_flaky|stripe_heavy)" "$TESTS_DIR" | wc -l
 grep -rnE "@pytest.mark.(xfail|stripe_flaky|bg_flaky)" "$TESTS_DIR"
 
-# 5. Sync check scripts repo ↔ skill
-for s in manage.sh mt.sh stripe_heavy_collect.py validate_migrations.sh; do
-  diff -q "scripts/$s" "skills/testing-orchestration/scripts/$s" || \
-    echo "WARN: scripts/$s diverge de skill copy"
-done
-
-# 6. git status del scope
+# 5. git status del scope (la skill ya no bundlea scripts → sin sync check)
 git status --short "${BACKEND_PATH:-backend}/" scripts/ skills/testing-orchestration/
 ```
 
@@ -690,15 +674,8 @@ else
   echo "[WARN] pytest.ini no encontrado en raíz ni en \$BACKEND_PATH ($BACKEND_PATH) — verificar configuración (CLAUDE.md §pytest)"
 fi
 
-# 9. Sync skill scripts ↔ repo scripts
-for s in manage.sh mt.sh stripe_heavy_collect.py validate_migrations.sh; do
-  [ ! -f "scripts/$s" ] && continue
-  if [ ! -f "skills/testing-orchestration/scripts/$s" ]; then
-    echo "[WARN] skills/.../scripts/$s ausente; copia desde scripts/$s"
-  elif ! diff -q "scripts/$s" "skills/testing-orchestration/scripts/$s" >/dev/null 2>&1; then
-    echo "[WARN] scripts/$s diverge de skill copy — sincronizar"
-  fi
-done
+# (la skill ya no bundlea scripts del proyecto → no hay sync check que hacer;
+#  solo se referencian los ./scripts/* del repo, verificados en el paso del orquestador)
 
 echo "=== Self-check completado: $ERRORS error(es) críticos ==="
 [ $ERRORS -eq 0 ] && echo "Skill lista para usar" || echo "Skill NO usable hasta resolver errores [FAIL]"
@@ -949,7 +926,7 @@ G (plan-guardian)
  └── 12. Definition of done
 
 A (restart dev)     ─ pre-requisito de F (manual UI), opcional standalone; incluye smoke /api/health
-B (restart test)    ─ pre-requisito de C/D, opcional standalone; incluye sync check scripts
+B (restart test)    ─ pre-requisito de C/D, opcional standalone
 C (run + audit)     ─ ejecutado dentro de D (3, 4) y standalone; incluye freshness check robusto
 D (regression loop) ─ invocado por G paso 3 y 6 + standalone
 E (detect afectados)─ invocado por G paso 1 + standalone

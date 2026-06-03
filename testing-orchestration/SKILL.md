@@ -45,7 +45,7 @@ Al adoptar la skill en un proyecto destino, **resolver las variables siguientes 
 | `{{stage}}` | `dev` o `production` declarado en `CLAUDE.md` §"estado del proyecto" | sección "Estado del proyecto" abajo | `dev` = sin backfill ni shape antiguo. `production` cambia reglas (fuera de scope skill) |
 
 **Resumen de instalación (3 pasos)**:
-1. **Copiar** `skills/testing-orchestration/` al repo destino (preservando `scripts/` adjuntos).
+1. **Copiar** `skills/testing-orchestration/` al repo destino (solo docs — la skill ya no trae scripts; referencia los `./scripts/*` del proyecto).
 2. **Editar** `paths:` del frontmatter SKILL.md añadiendo los paths concretos del proyecto destino (descomentando los placeholders del bloque `# Paths específicos del proyecto destino`).
 3. **Ejecutar** `/testing-orchestration self-check` (workflow K) para verificar que `CLAUDE.md`, `manage.sh`, paths, markers pytest y bug tracker dual están presentes y consistentes.
 
@@ -54,7 +54,7 @@ Al adoptar la skill en un proyecto destino, **resolver las variables siguientes 
 2. Verifica que `./scripts/<orquestador>` existe y es ejecutable.
 3. Verifica el **stack Docker** (pieza fundamental de los requisitos arquitectónicos): daemon vivo, `docker compose` v2 disponible, compose files referenciados por el orquestador presentes en disco, servicios mínimos (`backend` + `db-test` o equivalentes según `CLAUDE.md` — override via `EXPECTED_SERVICES`) declarados, imagen test construida (warn si falta — primer `test:*` la crea), label `src_hash` para freshness por hash (warn si falta — fallback mtime aplica), red externa `proxy` si la requiere `up` prod (info — irrelevante en máquina dev pura).
 4. Verifica que paths del frontmatter resuelven a archivos del proyecto.
-5. Verifica que `pytest.ini` / `conftest.py` exponen markers usados (`stripe_integration`, `stripe_heavy`, `stripe_flaky`, `bg_flaky` o equivalentes — ver workflow B sync).
+5. Verifica que `pytest.ini` / `conftest.py` exponen markers usados (`stripe_integration`, `stripe_heavy`, `stripe_flaky`, `bg_flaky` o equivalentes — ver workflow B).
 
 Si self-check falla → **no usar la skill** hasta resolver. La skill **no es funcional** sin el peer doc + el orquestador + Docker funcional.
 
@@ -118,7 +118,7 @@ Casos típicos:
 | **H** | Validate migrations | edit `{{migrations_path}}*` | `validate_migrations.sh` | IDs únicos + chain coherente |
 | **I** | Sprint status | "report del sprint" | agrega runs + bugs + markers | reporte consolidado |
 | **J** | i18n coherence | edit `{{locales_path}}` | check N locales (lista dinámica) + cross-check user manual + tests | gaps reportados |
-| **K** | Self-check de adopción | `/testing-orchestration self-check` | 9 verificaciones (peer doc, orquestador, docker stack, paths, locales, bug tracker dual, markers pytest, sync scripts, env vars) | 0 errores `[FAIL]` |
+| **K** | Self-check de adopción | `/testing-orchestration self-check` | 8 verificaciones (peer doc, orquestador, docker stack, paths, locales, bug tracker dual, markers pytest, env vars) | 0 errores `[FAIL]` |
 
 **Plan G envuelve a los demás** durante el diseño de feature/fix:
 
@@ -350,18 +350,21 @@ CLAUDE_SKILLS_DIR=$HOME/.claude/skills ./scripts/manage.sh install:skill testing
 
 **Restart de sesión Claude Code**: tras la primera `install:skill` (cuando `.claude/skills/` se crea por primera vez), reiniciar Claude Code es **obligatorio** per docs oficiales. Tras instalaciones posteriores, el restart suele ser opcional.
 
-## Recursos adjuntos en la skill (estrategia A — copia)
+## Scripts del proyecto que la skill referencia (NO los bundlea)
 
-- `${CLAUDE_SKILL_DIR}/scripts/manage.sh` — orquestador principal (copia de `scripts/manage.sh` del repo).
-- `${CLAUDE_SKILL_DIR}/scripts/mt.sh` — **opcional**: middleware manual tests específico del proyecto (típicamente env vars para payment providers, tokens auth, sidecars externos — depende de cada proyecto). Si el proyecto destino no lo usa, eliminar.
-- `${CLAUDE_SKILL_DIR}/scripts/stripe_heavy_collect.py` (renombrar a `pytest_class_collector.py` para portabilidad — collector pytest genérico que filtra por marker).
-- `${CLAUDE_SKILL_DIR}/scripts/validate_migrations.sh` — Alembic validator (parametrizable via env `MIGRATIONS_DIR`).
-- `${CLAUDE_SKILL_DIR}/scripts/sync-skill-scripts.sh` — pre-commit hook helper que vive **dentro de la skill** (no en `scripts/` del repo) por diseño: el hook es un asset distribuible con la skill, no del repo. Su ruta canónica al instalar es vía symlink desde `.git/hooks/pre-commit` (ver instrucciones en su cabecera).
+La skill **no copia** scripts del proyecto — los **referencia** por su ruta del repo
+(`./scripts/...`) en todos sus docs. Antes traía copias (manage.sh, mt.sh, validate_migrations.sh,
+stripe_heavy_collect.py) + un pre-commit hook de sincronización; se eliminaron por causar
+drift constante y ensuciar el submódulo. La skill es ahora solo docs.
 
-**Sincronización repo ↔ skill** (drift prevention):
-- **Pre-commit hook obligatorio** en `.git/hooks/pre-commit` o vía CI: si `scripts/<X>` cambió y `skills/testing-orchestration/scripts/<X>` no se actualizó en el mismo commit → fail.
-- Workflow B y workflow I también ejecutan sync check (defensa secundaria). Implementación: `diff -q scripts/<X> skills/testing-orchestration/scripts/<X> || warning`.
-- Alternativa: symlinks relativos (`scripts/manage.sh -> ../../../scripts/manage.sh`). Caveat: rompen al copiar la skill a otra máquina.
+Scripts esperados en el proyecto destino (la skill los invoca por su ruta del repo):
+- `./scripts/manage.sh` — orquestador (entry point; **obligatorio**).
+- `./scripts/mt.sh` — **opcional**: middleware de manual tests (solo proyectos con billing externo).
+- `./scripts/validate_migrations.sh` — validador Alembic (workflow H; parametrizable via `MIGRATIONS_DIR`).
+- `./scripts/stripe_heavy_collect.py` (o equivalente) — collector pytest por marker (fases stripe heavy).
+
+Al adoptar la skill en otro proyecto, esos scripts deben existir en su `scripts/` (o adaptar los
+nombres en los docs). No hay copias en la skill ni hook de sincronización que mantener.
 
 ## Bug tracker dual (acción de la skill)
 

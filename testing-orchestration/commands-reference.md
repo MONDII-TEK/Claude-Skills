@@ -54,7 +54,7 @@ La skill se carga automáticamente cuando el archivo abierto/editado matchea uno
 | `logs/test_runs/<ts>/<archivo>` | Audit retroactivo | Ofrece análisis del run dir |
 
 **Eliminados explícitamente** del auto-trigger por path (decisiones de diseño que aplican al portar la skill a cualquier proyecto):
-- Scripts del orquestador (`scripts/<orquestador>` y similares): auto-trigger es ruido; el sync check vive en workflow B/I.
+- Scripts del orquestador (`scripts/<orquestador>` y similares): auto-trigger es ruido.
 - Bug tracker (`{{bug_tracker_active}}`, `{{bug_tracker_history}}`): auto-trigger ruido cuando solo se lee; las acciones explícitas (abrir/cerrar bug) se cubren por description triggers vía allowed-tools `Edit Write`.
 - Frontend puro (en IronVolt: `client/src/**`; en otros proyectos: `frontend/src/**`, `app/**`, etc. — sustituir según `{{frontend_path}}`): no requiere orquestación de tests; cubierto solo si toca i18n (workflow J) o si el usuario anuncia feature (workflow G).
 - Mobile (en IronVolt: `mobile/**`; sustituir según el layout del proyecto): la skill es agnóstica de la rama mobile.
@@ -67,7 +67,6 @@ Estos no son triggers que el usuario invoque; son verificaciones que ejecuta wor
 |---|---|---|
 | Anti-colisión | C, B, D | Detecta `<proyecto>_test-(backend-run\|<sidecar>)` activos → aborta o limpia |
 | Image freshness check | C, B, D | Compara content hash del código backend (path declarado en `CLAUDE.md`, parametrizado via `BACKEND_PATH`) vs imagen test → rebuild si stale, aviso si `--no-build` explícito |
-| Sync check scripts repo ↔ skill | B, I | Diff entre `scripts/<x>` (repo) y `skills/testing-orchestration/scripts/<x>` (skill) → warning si difieren (la primera defensa es el pre-commit hook) |
 
 ## 4. Mantenimiento (modificación de archivos por la skill)
 
