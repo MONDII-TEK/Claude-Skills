@@ -5,6 +5,8 @@ Plantillas literales que la skill `testing-orchestration` usa para mantener el b
 - **Workflow #26** (abrir bug) → plantilla §1 abajo, entrada se añade a `docs/analysis/051_bug_tracker.md` (activo).
 - **Workflow #27** (cerrar bug) → plantilla §2 abajo, entrada se **mueve** del activo al gemelo `docs/analysis/051_bug_tracker_history.md` en el **mismo commit** que aplica el fix.
 
+> **Nota de nomenclatura**: `#26`/`#27` son IDs heredados del catálogo de workflows del doc maestro de testing (doc 053); **no** pertenecen al esquema alfabético A-L del resto de la skill. Son, sin más, las operaciones *abrir* y *cerrar* del bug tracker dual. En un proyecto destino puedes renombrarlas: lo que importa es la operativa (abrir en el activo / mover al gemelo en el commit del fix), no el número.
+
 > Política: el activo es **mínimo de bugs abiertos / fixing**. Sin historial. Cuando el bug pasa a estado terminal (CORREGIDO / NO ES BUG / OBSOLETO / DUPLICADO / INFRA TEST mitigado), su entrada deja el activo. Workflow #27 garantiza la atomicidad (movimiento + fix en mismo commit).
 
 ---

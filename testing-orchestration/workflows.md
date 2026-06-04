@@ -148,46 +148,11 @@ Si el smoke test falla, NO declarar el restart como exitoso. Levantar logs (`./s
 docker ps --format '{{.Names}}' | grep -E '_test-(backend-run|stripe-cli)' && \
   ./scripts/manage.sh test:clean --keep-db
 
-# 2. Image freshness check (LA SKILL ES LA AUTORIDAD) — algoritmo robusto
-# Variables de proyecto (consultar `CLAUDE.md` para los valores reales del layout;
-# override via env si difieren de los placeholders BACKEND_PATH y TESTS_SUBPATH):
-BACKEND_PATH="${BACKEND_PATH:-backend}"  # placeholder genérico — sustituir/override según CLAUDE.md
-TESTS_SUBPATH="${TESTS_SUBPATH:-tests}"   # idem
-TEST_IMG=$(docker images --format '{{.Repository}}' | grep -E 'test-backend' | head -1)
-
-# Preferido: comparación por content hash (label de la imagen)
-SRC_HASH=$(find "$BACKEND_PATH" -type f -name '*.py' \
-  -not -path "$BACKEND_PATH/$TESTS_SUBPATH/*" \
-  -not -path '*/__pycache__/*' \
-  -not -name '*.pyc' \
-  -not -name '*.egg-info*' \
-  | sort | xargs sha256sum | sha256sum | cut -d' ' -f1 | head -c 16)
-IMG_HASH=$(docker image inspect "$TEST_IMG" --format '{{ index .Config.Labels "src_hash" }}' 2>/dev/null)
-
-if [ -z "$TEST_IMG" ]; then
-  ./scripts/manage.sh build:test    # imagen no existe
-elif [ -z "$IMG_HASH" ]; then
-  # Fallback: timestamp UTC explícito (compatible con builds antiguas sin label)
-  IMG_TS_UTC=$(docker image inspect "$TEST_IMG" --format '{{.Created}}' 2>/dev/null)
-  IMG_EPOCH=$(date -u -d "$IMG_TS_UTC" +%s 2>/dev/null)
-  LATEST_SRC=$(find "$BACKEND_PATH" -type f -name '*.py' \
-    -not -path "$BACKEND_PATH/$TESTS_SUBPATH/*" \
-    -not -path '*/__pycache__/*' \
-    -not -name '*.pyc' \
-    -newermt "@$IMG_EPOCH" 2>/dev/null | head -1)
-  if [ -n "$LATEST_SRC" ]; then
-    echo "STALE (mtime fallback): $LATEST_SRC after build"
-    ./scripts/manage.sh build:test
-  fi
-elif [ "$SRC_HASH" != "$IMG_HASH" ]; then
-  echo "STALE (hash mismatch): src=$SRC_HASH img=$IMG_HASH"
-  ./scripts/manage.sh build:test
-fi
-# Notas: algoritmo robusto a zonas horarias (epoch UTC), mtimes preservados de
-# git checkout (usa hash si la build añadió --label src_hash), archivos
-# generados (excluye __pycache__/*.pyc/*.egg-info), parametrizado por
-# BACKEND_PATH y TESTS_SUBPATH env vars — exportar valores reales según
-# CLAUDE.md del proyecto.
+# 2. Image freshness check (LA SKILL ES LA AUTORIDAD): rebuild silencioso si la imagen test está
+#    stale vs el código backend. El algoritmo NO se duplica aquí — es el del Pre-flight CANÓNICO de
+#    SKILL.md ("## Pre-flight (compartido por workflows B/C/D)"): content-hash por label src_hash,
+#    fallback mtime con epoch UTC, parametrizado por BACKEND_PATH/TESTS_SUBPATH. Precedencia de flags:
+#    --build fuerza rebuild; --no-build salta (warn si stale); sin flag → el freshness check decide.
 
 # 3. Run con captura
 ./scripts/manage.sh test:<tipo> [<submodulo>] [<flags>] >/tmp/test_debug.log 2>&1
