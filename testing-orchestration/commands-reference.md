@@ -24,7 +24,7 @@ Tabla canónica de los triggers de la skill `testing-orchestration` con sintaxis
 
 ### 2.a. Por description match (frase libre del usuario)
 
-El modelo carga la skill cuando matchea `when_to_use:` del frontmatter contra el prompt del usuario. Frases gatillo:
+El modelo carga la skill cuando el `description` del frontmatter (único campo de disparo) matchea el prompt del usuario. Frases gatillo:
 
 | Categoría | Frases típicas | Workflow |
 |---|---|---|
@@ -38,11 +38,11 @@ El modelo carga la skill cuando matchea `when_to_use:` del frontmatter contra el
 | Status | *"report del sprint"*, *"estado del testing"* | I |
 | i18n | *"actualiza i18n"*, *"añade traducción"*, *"i18n missing locale"* | J |
 
-### 2.b. Por path match (filesystem)
+### 2.b. Heurística por área editada (NO es auto-trigger — invocar la skill)
 
-La skill se carga automáticamente cuando el archivo abierto/editado matchea uno de los `paths:` del frontmatter:
+Las skills no se disparan por edición de archivos (`paths:` no es un campo válido). Esta tabla es una **guía**: cuando estás tocando una de estas áreas es la señal para invocar la skill (frase gatillo o slash) y arrancar el workflow latente correspondiente.
 
-> **Nota**: los paths de la tabla espejan los `paths:` del frontmatter — el contrato concreto se declara en `CLAUDE.md` del proyecto. Al portar la skill, sustituir las variables `{{backend_path}}`, `{{locales_path}}`, `{{migrations_path}}` por los paths reales del proyecto destino (consultar `CLAUDE.md` y, si se referencia, `ARCHITECTURE.md`). La sustitución se hace **una sola vez** al editar el frontmatter — esta tabla es documentación de referencia, no contrato ejecutable.
+> **Nota**: los paths usan las variables `{{backend_path}}`, `{{locales_path}}`, `{{migrations_path}}` — el layout concreto se declara en `CLAUDE.md` del proyecto (y, si se referencia, `ARCHITECTURE.md`). Es documentación de referencia, no contrato ejecutable.
 
 | Path matcheado | Workflow latente | Acción |
 |---|---|---|
@@ -83,8 +83,8 @@ Estos no son triggers que el usuario invoque; son verificaciones que ejecuta wor
 
 | Comando | Función |
 |---|---|
-| `test:build` | Build imagen test-backend (cache activo) |
-| `test:build --no-cache` | Idem forzando no-cache (tras cambio deps) |
+| `build:test` (alias `test:build`) | Build imagen test-backend (cache activo) |
+| `build:test --no-cache` | Idem forzando no-cache (tras cambio deps) |
 | `test:up` | Arranca solo `db-test` (no corre tests) |
 | `test:down` | Para y elimina `db-test` |
 

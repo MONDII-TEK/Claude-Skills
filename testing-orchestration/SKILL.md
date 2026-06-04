@@ -23,16 +23,16 @@ Esta skill es **agnóstica al proyecto**. Se diseñó portable a otros proyectos
 - `CLAUDE.md` (peer doc auto-cargado por Claude Code) declarando arquitectura/layout/credenciales test, opcionalmente referenciando un `ARCHITECTURE.md` u otros docs como detalle profundo.
 - Un script de orquestación tipo `manage.sh` o equivalente con subcomandos `test:*`, `build:test`, `up:dev`, etc.
 
-Al adoptar la skill en un proyecto destino, **resolver las variables siguientes consultando `CLAUDE.md`** (y los docs que referencie). Las que se documentan via env var pueden quedar en placeholder; las que afectan el frontmatter `paths:` deben añadirse al frontmatter al instalar la skill.
+Al adoptar la skill en un proyecto destino, **resolver las variables siguientes consultando `CLAUDE.md`** (y los docs que referencie). Se configuran de dos formas, **ninguna en el frontmatter**: (a) las que el código de los workflows consume, vía **env vars** (`BACKEND_PATH`, `LOCALES_DIR`, `MIGRATIONS_DIR`, `BUG_TRACKER_ACTIVE`, …); (b) las demás, declarándolas en `CLAUDE.md` para que la skill las lea en contexto. El frontmatter de una skill solo admite `name`+`description` (ver cabecera), así que **el disparo es por `description` + invocación explícita**, nunca por `paths:`.
 
 | Variable | Resolución | Dónde aplica | Notas |
 |---|---|---|---|
-| `{{backend_path}}` | path raíz del backend declarado en `CLAUDE.md` | `paths:` frontmatter (AÑADIR `<backend_path>/**`), `BACKEND_PATH` env var (freshness check, workflow E, workflow K) | **Crítica** — el algoritmo de freshness depende. Por defecto el código del freshness usa placeholder `backend`; exportar `BACKEND_PATH=app` (o el path real del proyecto) o sustituir en el frontmatter |
+| `{{backend_path}}` | path raíz del backend declarado en `CLAUDE.md` | `BACKEND_PATH` env var (freshness check, workflow E, workflow K) | **Crítica** — el algoritmo de freshness depende. Por defecto el código del freshness usa placeholder `backend`; exportar `BACKEND_PATH=app` (o el path real del proyecto) antes de invocar la skill |
 | `{{frontend_path}}` | path del frontend declarado en `CLAUDE.md` (si aplica) | commands-reference.md, plan-template §7-§9 | Eliminar referencias si el proyecto no tiene frontend |
-| `{{locales_path}}` | path de los archivos i18n (si aplica) | `paths:` frontmatter (AÑADIR), workflow J `LOCALES_DIR` env var | Omitir si no hay i18n |
+| `{{locales_path}}` | path de los archivos i18n (si aplica) | workflow J vía `LOCALES_DIR` env var | Omitir si no hay i18n |
 | `{{locales_list}}` | detectado dinámicamente del filesystem | workflow J — leído de `$LOCALES_DIR/*/` | No hardcoded |
 | `{{namespaces_list}}` | detectado dinámicamente | workflow J — leído de `$LOCALES_DIR/<ref>/` | No hardcoded |
-| `{{migrations_path}}` | path Alembic declarado en `CLAUDE.md` | `paths:` frontmatter (AÑADIR), workflow H, validate_migrations.sh `MIGRATIONS_DIR` env var | Consultar `CLAUDE.md` §"layout / migrations" |
+| `{{migrations_path}}` | path Alembic declarado en `CLAUDE.md` | workflow H + validate_migrations.sh vía `MIGRATIONS_DIR` env var | Consultar `CLAUDE.md` §"layout / migrations" |
 | `{{user_manual_path}}` | path al user manual declarado en `CLAUDE.md` (si existe) | invariant 9, plan-template §11, workflow J `USER_MANUAL_PATH` env var | Vacío = skip cross-check; eliminar si no hay user manual |
 | `{{bug_tracker_active}}` | path al bug tracker activo del proyecto | invariant 10, policies §12, bug-tracker-template, workflow K `BUG_TRACKER_ACTIVE` env var | Default razonable: `docs/<analysis_dir>/<bug_tracker>.md` |
 | `{{bug_tracker_history}}` | path al gemelo histórico | idem (`BUG_TRACKER_HISTORY` env var) | |
@@ -46,14 +46,14 @@ Al adoptar la skill en un proyecto destino, **resolver las variables siguientes 
 
 **Resumen de instalación (3 pasos)**:
 1. **Copiar** `skills/testing-orchestration/` al repo destino (solo docs — la skill ya no trae scripts; referencia los `./scripts/*` del proyecto).
-2. **Editar** `paths:` del frontmatter SKILL.md añadiendo los paths concretos del proyecto destino (descomentando los placeholders del bloque `# Paths específicos del proyecto destino`).
+2. **Configurar las variables** que los workflows consumen vía env (al menos `BACKEND_PATH`; y `LOCALES_DIR` / `MIGRATIONS_DIR` / `BUG_TRACKER_ACTIVE` / `BUG_TRACKER_HISTORY` si aplican) y confirmar que `CLAUDE.md` declara arquitectura, layout y credenciales test. **El frontmatter no se toca** (solo `name`+`description`); si quieres afinar el disparo, ajusta las frases gatillo del `description`.
 3. **Ejecutar** `/testing-orchestration self-check` (workflow K) para verificar que `CLAUDE.md`, `manage.sh`, paths, markers pytest y bug tracker dual están presentes y consistentes.
 
 **Pre-flight de adopción** — workflow opcional `/testing-orchestration self-check`:
 1. Verifica que el peer doc (`CLAUDE.md` o equivalente) existe y describe arquitectura, stack, credenciales test, comandos del orquestador.
 2. Verifica que `./scripts/<orquestador>` existe y es ejecutable.
 3. Verifica el **stack Docker** (pieza fundamental de los requisitos arquitectónicos): daemon vivo, `docker compose` v2 disponible, compose files referenciados por el orquestador presentes en disco, servicios mínimos (`backend` + `db-test` o equivalentes según `CLAUDE.md` — override via `EXPECTED_SERVICES`) declarados, imagen test construida (warn si falta — primer `test:*` la crea), label `src_hash` para freshness por hash (warn si falta — fallback mtime aplica), red externa `proxy` si la requiere `up` prod (info — irrelevante en máquina dev pura).
-4. Verifica que paths del frontmatter resuelven a archivos del proyecto.
+4. Verifica que los paths del proyecto (env vars `BACKEND_PATH`/`LOCALES_DIR`/`MIGRATIONS_DIR`/… o declarados en `CLAUDE.md`) resuelven a archivos reales.
 5. Verifica que `pytest.ini` / `conftest.py` exponen markers usados (`stripe_integration`, `stripe_heavy`, `stripe_flaky`, `bg_flaky` o equivalentes — ver workflow B).
 
 Si self-check falla → **no usar la skill** hasta resolver. La skill **no es funcional** sin el peer doc + el orquestador + Docker funcional.
@@ -91,7 +91,7 @@ Esta skill **asume** que el peer doc del proyecto (`CLAUDE.md`) describe la arqu
 
 ## Cuándo invocar esta skill
 
-Aparece automáticamente al editar archivos en `paths:` o por frases gatillo del `when_to_use:`. Invócala explícitamente con `/testing-orchestration`.
+Se activa por **frases gatillo del `description`** (el modelo decide al detectar el contexto) o invocándola **explícitamente** con `/testing-orchestration`. No hay auto-trigger por edición de archivos: las skills solo disponen de `name`+`description` para el disparo (ver cabecera).
 
 Casos típicos:
 - Vas a empezar una feature/fix nueva → workflow G (plan-guardian).
@@ -119,6 +119,7 @@ Casos típicos:
 | **I** | Sprint status | "report del sprint" | agrega runs + bugs + markers | reporte consolidado |
 | **J** | i18n coherence | edit `{{locales_path}}` | check N locales (lista dinámica) + cross-check user manual + tests | gaps reportados |
 | **K** | Self-check de adopción | `/testing-orchestration self-check` | 8 verificaciones (peer doc, orquestador, docker stack, paths, locales, bug tracker dual, markers pytest, env vars) | 0 errores `[FAIL]` |
+| **L** | Release & versionado | "vamos a hacer release" / "tag de release" | `version:tag --release --patch\|--minor\|--major` | tag creado + push + `RELEASE_NOTES.md` promovido (Unreleased → bloque del tag) |
 
 **Plan G envuelve a los demás** durante el diseño de feature/fix:
 
@@ -296,10 +297,10 @@ Detalle paso a paso de G: ver [workflows.md](workflows.md) §G.
 | `/testing-orchestration status` | I sprint status | sin args |
 | `/testing-orchestration self-check` | self-check adopción | sin args |
 
-**Auto-trigger** (modelo decide — sin teclear):
+**Auto-trigger por `description` match** (modelo decide — sin teclear):
 
-- **Por description match**: frases del usuario tipo *"voy a añadir feature"*, *"down y rebuild"*, *"lanza test:stripe"*, *"verificación manual"*, *"qué tests cubren"*, *"fix and re-run"*, *"valida migraciones"* (lista completa en `when_to_use:` del frontmatter).
-- **Por path match**: editar archivos en `paths:` (backend, migrations, locales, scripts del orquestador, compose, run dirs).
+- Frases del usuario tipo *"voy a añadir feature"*, *"down y rebuild"*, *"lanza test:stripe"*, *"verificación manual"*, *"qué tests cubren"*, *"fix and re-run"*, *"valida migraciones"* (la lista vive en el `description` del frontmatter — único campo de disparo de una skill).
+- **No existe** disparo por edición de archivos (`paths:` no es un campo válido de skill): si editas backend/migrations/locales y quieres la skill, invócala con una de esas frases o con `/testing-orchestration`.
 
 **Comportamiento ante args ausentes/inválidos**:
 - `design` sin título → preguntar al usuario *"¿título corto del feature/fix?"*.
@@ -385,7 +386,7 @@ nombres en los docs). No hay copias en la skill ni hook de sincronización que m
 
 ## Navegación a contenido detallado
 
-- Step-by-step de cada workflow A-J: [workflows.md](workflows.md)
+- Step-by-step de cada workflow A-L: [workflows.md](workflows.md)
 - Plantilla literal copiable del plan G + variantes (refactor / hotfix / config-only): [plan-template.md](plan-template.md)
 - Plantillas copiables del bug tracker (open/close/NO-BUG/reopen): [bug-tracker-template.md](bug-tracker-template.md)
 - Políticas generales (rebuild, anti-colisión, xfail, RBAC, idempotencia, lifecycle bug tracker): [policies.md](policies.md)

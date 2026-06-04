@@ -8,7 +8,7 @@ Detalle paso a paso de los 10 workflows orquestados por la skill. Cada uno con: 
 
 **Disparo canónico**:
 - Frase: *"voy a añadir feature X"*, *"voy a refactorizar Y"*, *"vamos a arreglar el bug Z"*, *"diseñemos plan para …"*.
-- Auto-trigger por `paths:` del frontmatter (declarados según el layout del proyecto en `CLAUDE.md`) cuando aún no hay plan G activo en la sesión.
+- Estar editando código de servicio/ruta/modelo es la señal para invocarla cuando aún no hay plan G activo (no hay auto-trigger por archivo: usa una frase gatillo o el slash).
 - Slash: `/testing-orchestration design <título>`.
 
 **Quién es el arquitecto**: el usuario humano, o el agente `fullstack-architect-reviewer` si el usuario lo invoca para reforzar el plan. La skill **colabora**: emite plantilla + checklists; el arquitecto rellena el contenido de dominio; la skill audita el plan resultante.
@@ -264,7 +264,7 @@ grep -nE "PASSED|FAILED|ERROR|CRITICAL|InternalError" "${RUN_DIR}backend.log" | 
 ## Workflow E — Detect tests afectados por un cambio
 
 **Disparo**:
-- Auto-trigger al cargarse la skill por `paths:` del frontmatter (layout del proyecto declarado en `CLAUDE.md`) con ficheros modificados.
+- Tras modificar ficheros, invócala para listar los tests afectados (no hay auto-trigger por archivo; usa la frase o el slash).
 - Frase: *"qué tests cubren este cambio"*, *"qué tests están afectados"*.
 - Slash: `/testing-orchestration affected`.
 - Paso 1 de G.
@@ -764,7 +764,9 @@ curl -s http://<host>/api/version | jq .describe
 
 Cada release deja una entrada en `RELEASE_NOTES.md` (raíz del proyecto) en Markdown plano, pensada para que el admin dashboard la renderice tal cual y un compañero no técnico la entienda. **No es un changelog técnico**: el detalle técnico ya vive en commits, ADRs y docs internos.
 
-**Obligatorio en cada push con commits**: cualquier push a `main` (o a la rama de release) que arrastre commits funcionales **debe ir acompañado de una entrada en `RELEASE_NOTES.md`**, aunque ese push no cree un tag todavía. La entrada cita los commits asociados y su intención agregada. Si todavía no hay tag, la entrada se redacta bajo la cabecera `## Unreleased — YYYY-MM-DD` (newest on top) y al ejecutar `version:tag` la cabecera se sustituye por la versión real. **Saltarse este paso pierde trazabilidad para el dashboard y para auditoría post-incidente**.
+**Continuo, en CADA commit (no solo al push ni al tag)**: el bloque `## Unreleased` (al principio del fichero, justo debajo de `# Release notes`) se mantiene **al día con cada commit que tenga efecto user-facing**. Al cerrar un commit funcional se añade o ajusta su bullet en la sección que corresponda (`New`/`Changes`/`Fixes`/`Notes`) dentro de `## Unreleased`, de modo que ese bloque refleja **en todo momento** lo que hay sin publicar. No se espera al push ni al tag para redactarlo: el push solo comprueba que `## Unreleased` ya cubre sus commits. La razón es que escribir la nota en caliente —con el porqué del commit aún fresco— da una entrada fiel; dejarlo "para el final" pierde matices y trazabilidad para el dashboard y la auditoría post-incidente. `## Unreleased` no lleva fecha (la fecha la fija el tag al promover).
+
+**Promoción al taggear (`version:tag`, workflow L)**: al crear el tag, el contenido acumulado bajo `## Unreleased` se **promueve** a un bloque versionado nuevo `## vX.Y.Z — YYYY-MM-DD` (newest on top, justo debajo de `## Unreleased`), con la versión y la fecha reales del tag. Acto seguido `## Unreleased` se deja **vacío**: solo su cabecera, **sin** los subtítulos `New`/`Changes`/`Fixes`/`Notes` —esos reaparecen cuando vuelve a haber contenido—. Así, entre releases, un `## Unreleased` sin subtítulos significa literalmente "nada pendiente aún". Promover es mover el bloque y renombrar la cabecera, no reescribir: lo que ya estaba redactado en caliente pasa tal cual al bloque del tag.
 
 **Los fixes son control de cambios, no opcional**: la regla anterior aplica **igual** a `fix(...)` que a `feat(...)`. Cada bugfix que llega a producción modifica el contrato observable del sistema y por lo tanto **tiene que aparecer en `RELEASE_NOTES.md`** — el documento es la fuente oficial de control de cambios visible para operadores y clientes. Si un fix corrige algo que el usuario notaba (incluido un 500 silencioso o un toast genérico), entra en **Fixes**. Si solo corrige código interno sin efecto observable, entra en **Notes** con una línea ("documentation refresh", "internal refactor of X with no behaviour change") para que quede el rastro. **Nunca se mergea un fix a `main` sin tocar `RELEASE_NOTES.md`**.
 
