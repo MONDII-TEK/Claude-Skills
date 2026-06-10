@@ -658,7 +658,7 @@ echo "=== Self-check completado: $ERRORS error(es) críticos ==="
 ## Workflow L — Release & versionado (semver bump previo al build)
 
 **Disparo**:
-- Frase: *"vamos a hacer release"*, *"bump version"*, *"tag de release"*, *"version:tag"*, *"deploy a NAS"*, *"release notes"*, *"dev notes"*, *"qué tenemos para push"*, *"estamos para push"*.
+- Frase: *"vamos a hacer release"*, *"haz release"*, *"bump version"*, *"tag de release"*, *"tagea"*, *"tag it"*, *"version:tag"*, *"deploy a NAS"*, *"release notes"*, *"dev notes"*, *"escribe/redacta las release notes"*, *"actualiza las release notes / las RN"*, *"escribe las RN"*, *"qué tenemos para push"*, *"estamos para push"*.
 - Slash: opcional, también disparable con `/loop` o directo.
 - Pre-requisito cuando un build de NAS / staging va a consumir el repo con tag estable identificable.
 
@@ -807,6 +807,11 @@ Cada push trae un conjunto cerrado de commits. La entrada en `RELEASE_NOTES.md` 
    - Si tras la cobertura faltan commits user-visible en la entrada, completarla **antes** del push.
 
 **Anti-patrón frecuente**: redactar la entrada a partir del último commit (el más vivo en memoria) y dejar fuera los anteriores del push. Si el push tiene 27 commits, la entrada cubre los 27, no solo `dacdf959`.
+
+**Evidencia, no memoria (regla dura)**: la entrada se redacta SIEMPRE leyendo el `git log` del rango (subjects **y cuerpos**), nunca de recuerdo de lo que "creemos" que se hizo en la sesión. La memoria de la sesión es frágil: omite commits, inventa matices y —sobre todo— **no registra los reverts**. La fuente de verdad es el log, no la conversación.
+- **Detectar reverts/contradicciones dentro del propio rango**: si un commit añadió algo y otro posterior lo **revirtió** (una feature de `## Unreleased` que se deshizo antes de taggear; un cambio de comportamiento que se echó atrás; un SKU/flag que se decidió mantener tras probar a transformarlo), esa entrada **NO debe aparecer** en las release notes — se **elimina** (si el añadido era Unreleased → neto cero → no se anuncia) o se **corrige** (si lo revertido sí llegó a un release anterior → es un Fix). Verificar cada afirmación contra el **estado final** del rango, no contra el commit que la introdujo.
+- **Cómo cazarlos**: `git log <base>..HEAD --oneline | grep -iE "revert|revierte|deshace"` y leer los cuerpos que digan "revert"/"mantener X"/"vuelve a". Para una entrada ya presente en `## Unreleased` que sospechas revertida, confirmar si el commit que la introdujo es ancestro del último tag (`git merge-base --is-ancestor <commit> <tag>`): si NO lo es, era Unreleased y un revert posterior la deja en neto cero → quítala.
+- Esta verificación es **obligatoria** antes de promover/taggear y antes de cerrar cualquier redacción de RN: una release note que anuncia algo que ya no existe (porque se revirtió) es peor que omitirlo.
 
 **Secuencia integrada en el workflow L**:
 
