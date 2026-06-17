@@ -344,6 +344,11 @@ TESTS_DIR="${TESTS_DIR:-$BACKEND_PATH/tests}"
 ./scripts/validate_migrations.sh
 ```
 
+**Generación (autogen contra el contenedor VIVO, no a mano)**:
+- **SIEMPRE generar por autogen de Flask-Migrate** (diff del modelo + auto-ID único), corriendo `flask db migrate` **dentro del contenedor backend YA LEVANTADO** (`docker exec`, bind-mount = modelos nuevos) — que es donde el host `database` resuelve y el autogen ve el código actual. Si el orquestador del proyecto expone un subcomando para esto (en IronVolt: `./scripts/manage.sh db:revision -m "..."`), úsalo; si no existe, **créalo en el orquestador** (modelado sobre el patrón `docker exec <backend-vivo>` de `tasks:sync`/`db:py`) y documéntalo — **no** uses la variante `run --rm` con imagen horneada (modelos viejos → no detecta cambios) ni `flask db migrate` desde el host (no resuelve `database`).
+- **REVISA SIEMPRE el fichero generado**: el autogen suele capturar *drift* del schema dev NO relacionado con tu cambio (índices/FKs/constraints de otras tablas) — recórtalo dejando solo tu cambio. Si la columna nueva es `NOT NULL` sobre una tabla con filas, añade `server_default` (y luego `op.alter_column(..., server_default=None)`) o el upgrade falla.
+- **NO escribir a mano** salvo excepción justificada (autogen no disponible). Si es manual (o al recortar el autogen): ID con `uuid` + **patrón robusto idempotente** (cada op guardada contra el schema real vía `sa.inspect(bind)`, re-ejecutable).
+
 **Comprobaciones** (regla §6 CLAUDE.md):
 - IDs únicos (no duplicados entre archivos).
 - IDs no genéricos (`a1b2c3d4e5f6` blacklisteado).
