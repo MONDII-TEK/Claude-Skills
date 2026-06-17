@@ -128,6 +128,8 @@ Si el smoke test falla, NO declarar el restart como exitoso. Levantar logs (`./s
 
 **Smart**: `test:clean --keep-db` cuando solo se quiere bajar backend o sidecar y se sabe que el schema actual es válido (ahorra ~30s del recreate de db-test).
 
+> ⚠️ **`test:clean` (y el preflight de `test:*`) baja TAMBIÉN el stack DEV** (backend/frontend/database), no solo los contenedores de test — es **anti-colisión** (nombre/puerto/red). Implicación: **correr tests deja el sitio dev caído.** Si el usuario prueba manualmente desde la UI (en este proyecto el env de compose es alcanzable por DNS y los webhooks de Stripe entran directos), tras cualquier `test:*` hay que **`./scripts/manage.sh up:dev`** para devolver el sitio. Secuencia recomendada cuando se mezcla testing + prueba manual: correr todos los tests primero → `up:dev` final y dejarlo arriba.
+
 > La skill ya **no bundlea copias** de los scripts del proyecto (manage.sh, mt.sh, …) ni hay
 > sync check / pre-commit hook que mantener: referencia directamente los `./scripts/*` del repo.
 > Ver SKILL.md §"Scripts del proyecto que la skill referencia".
