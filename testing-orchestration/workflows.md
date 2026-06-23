@@ -693,7 +693,19 @@ git pull --ff-only origin main
 ./scripts/manage.sh version:current
 # Muestra: build label (GIT_DESCRIBE) + último tag semver + commits since.
 
-# 2. Decidir bump según la heurística arriba. Mensaje opcional.
+# 1b. PROMOVER RELEASE_NOTES.md — MANUAL y ANTES del tag.
+#     `version:tag` NO toca RELEASE_NOTES (solo crea/pushea el tag); si no promueves
+#     aquí, el tag apunta a un commit sin su bloque versionado. Promover = renombrar
+#     la cabecera `## Unreleased` a `## vX.Y.Z — YYYY-MM-DD` (versión y fecha REALES
+#     del tag que vas a crear; nunca cabecera sin fecha) y dejar ENCIMA una
+#     `## Unreleased` nueva y VACÍA (solo cabecera, sin subtítulos). Es mover+renombrar,
+#     no reescribir. Da al tag un `-m` con título real (no lo dejes vacío/genérico).
+#     Commitea y pushea main para que el tag incluya el bloque:
+git add RELEASE_NOTES.md
+git commit -m "docs(release-notes): promover Unreleased → vX.Y.Z"
+git push origin main
+
+# 2. Decidir bump según la heurística arriba. Mensaje con título real (no vacío).
 ./scripts/manage.sh version:tag --release --patch -m "Fix mapa multi-location + restore ownership"
 # Equivalentes según caso:
 # ./scripts/manage.sh version:tag --release --minor -m "Módulo appointments fase pública"
