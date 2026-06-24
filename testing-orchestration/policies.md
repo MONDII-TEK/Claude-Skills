@@ -295,7 +295,19 @@ Tests verifican **3 propiedades por handler + 3 por wrapper saliente**:
 - Hardcodear valores SHA-256 — usar `k1 == k2` y `len(k) == 32`.
 - Inspeccionar prefijos de `event_id` para saltar guards. Productores sintéticos cumplen contrato (populan `event_ts`).
 
-## 17. Old patterns (legacy)
+## 17. Artefactos plantillados (email / documento) — superficies acopladas
+
+Añadir una **plantilla** (email, documento) NO es añadir una fila: es registrar el `template_id` en **N superficies que driftan** (constantes, seeds por variante e idioma, mappers, settings de auto-send, registries de hooks, validación de variables, datos de preview, UI de configuración). Olvidar una produce bugs silenciosos: el envío real funciona pero el toggle es inerte, o el preview muestra `[var]` literal, o no aparece en la UI de config. Antes de dar por hecha una plantilla nueva, **auditar TODAS las superficies** (en este proyecto: ver `docs/analysis/091_email_document_template_surfaces.md`).
+
+Invariantes transversales (agnósticos al proyecto):
+
+1. **Gate de envío automático en UN único punto.** El "enviar automáticamente esta plantilla" se gobierna por un flag por-plantilla y el gate vive en el **punto de encolado** (`enqueue_*`), no en cada caller. Si el flag está OFF → **no se encola** (no encolar-y-descartar en el worker). Derivar la key del flag genéricamente del `template_id` (no un map hardcoded) para que toda plantilla nueva herede el gate sin registro manual. Transaccionales críticos → bypass explícito (`skip_auto_send_check`).
+2. **Preview/sample-data declarativo, no opt-in.** Los datos de prueba del preview deben derivarse del **mismo registro declarativo de variables** (cada variable con su `sample_value`), NO de un `handler_map` opt-in que alguien debe acordarse de actualizar. Un `handler_map` opt-in garantiza que **toda plantilla nueva nace con preview roto** mientras el email real sale bien — bug enmascarado.
+3. **Una fuente por dato.** Si "envío real" y "preview" leen de fuentes distintas, divergen. Unificar (preview alimentado por el mapper o por el registro de variables).
+4. **Test de cobertura anti-drift.** Para cada `template_id` registrado, assert que el preview no deja `[var]` sin resolver y que su toggle de auto-send existe y gatea. Convierte el gap silencioso en fallo de CI.
+5. **Variante + idioma.** Si hay variantes (system-default vs clásico/editorial) y multi-idioma, la plantilla nueva se replica en TODAS siguiendo el patrón de una existente — nunca a medias.
+
+## 18. Old patterns (legacy)
 
 Las reglas siguientes ya no aplican o han evolucionado:
 
