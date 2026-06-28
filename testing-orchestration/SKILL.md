@@ -99,6 +99,10 @@ Esta skill **asume** que el peer doc del proyecto (`CLAUDE.md`) describe la arqu
     - **Falsos negativos / gaps de costura**: al estar cada agente scopeado, puede haber riesgos que **ninguno** vio en las **intersecciones entre dominios** (membership↔ecommerce, webhook↔task, crédito↔pasarela). Audita esas costuras tú mismo.
     - **Contradicciones entre agentes**: resuélvelas con **el código como árbitro**, no por mayoría.
     - El informe final es **tu auditoría independiente** que usa los demás como insumos, con severidad recalibrada por ti — no un merge de sus conclusiones. (Aplica también a sub-agentes Explore/lectores dentro de un mismo agente: su resumen optimista puede mislabelar un hallazgo; la lectura directa del código manda.)
+18. **Cobertura de la selección — verificar que el test se EJECUTÓ, no solo que el run "pasó" (anti-falso-verde)**. El comando de módulo del orquestador (`test:module <name>` o equivalente) resuelve los ficheros por **prefijo/glob** (p.ej. `test_<name>_*.py`). Un fichero de test cuyo nombre **no casa** ese patrón queda **silenciosamente excluido**: el run sale **verde sin haber ejecutado tu test** (falso verde — y peor si commiteas confiando en él). Reglas:
+    - Tras CADA run con tests nuevos o modificados: confirmar que el test **se recogió** — el `collected N items` **subió** respecto al baseline **y** aparece la línea `ruta::Clase::test_x PASSED` **por nombre** en el log. `rc=0` + "X passed" **NO** prueba que TU test corriera; el contador puede ser el de otra selección.
+    - Si tu fichero no entró en la selección, invocar con el nombre de módulo que **sí** casa el patrón, o apuntar al **fichero/expresión exactos** (`-k "<expr>"`), y re-verificar por nombre.
+    - Vale para cualquier orquestador con resolución por patrón (prefijo, sufijo, marcador, path-glob): el conjunto que el comando ejecuta puede ser un **subconjunto** del que asumes — nunca inferir cobertura del número agregado.
 
 ## Cuándo invocar esta skill
 
