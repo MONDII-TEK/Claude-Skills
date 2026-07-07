@@ -489,10 +489,36 @@ TESTS_DIR="${TESTS_DIR:-${BACKEND_PATH:-backend}/tests}"
 for key in $NEW_KEYS; do
   grep -rln "$key" "$TESTS_DIR" 2>/dev/null | head -3
 done
+
+# 7. CÓDIGO → LOCALE (gap real, gotcha frecuente): toda clave `t("ns:key")` USADA en el código debe
+#    EXISTIR en el locale de referencia. Una clave usada con `defaultValue` pero AUSENTE de TODOS los
+#    locales se sirve como ese defaultValue (idioma de desarrollo) y sale MONOIDIOMA sin aviso — el diff
+#    cross-locale del paso 4 NO la detecta (todos los locales "coinciden" en su ausencia).
+#    IMPORTANTE (multilínea-safe): extraer por el PATRÓN de la clave (`"ns:algo.sub"`), NUNCA por la
+#    línea completa del `t(...)` — el `defaultValue` suele ir en OTRA línea que el `t("ns:key", {`, así
+#    que un regex de una sola línea SE SALTA esas claves (así se coló `citas.auth_note` monoidioma).
+CODE_DIR="${FRONTEND_SRC:-client/src}"
+for ns in "${NAMESPACES[@]}"; do
+  ref_file="$LOCALES_DIR/$REFERENCE_LOCALE/$ns.json"
+  [ ! -f "$ref_file" ] && continue
+  grep -rhoE "\"$ns:[a-zA-Z0-9_.]+\"" "$CODE_DIR" 2>/dev/null | sed -E "s/\"$ns:(.+)\"/\1/" | sort -u | \
+  while IFS= read -r key; do
+    [ -z "$key" ] && continue
+    python3 - "$ref_file" "$key" <<'PYEOF' || echo "MISSING-IN-CODE: $ns:$key (usado en código, ausente del locale; hoy sale con su defaultValue)"
+import json, sys
+o = json.load(open(sys.argv[1]))
+for p in sys.argv[2].split('.'):
+    if not isinstance(o, dict) or p not in o:
+        sys.exit(1)
+    o = o[p]
+PYEOF
+  done
+done
 ```
 
 **Criterio de "hecho"**: reporte con:
 - Gaps de cobertura entre los N locales detectados dinámicamente (claves añadidas a 1 idioma pero faltantes en otros).
+- **Cobertura código→locale** (paso 7): ninguna clave `t("ns:key")` usada en el código ausente del locale de referencia (las que solo viven en `defaultValue` salen monoidioma). Extracción **multilínea-safe** (por patrón de clave, no por línea del `t(`).
 - Sugerencia de actualizar user manual si la string es user-facing relevante (omitido si no hay user manual).
 - Tests que asseran la string (verificar que se actualicen si la traducción cambia).
 
@@ -927,4 +953,45 @@ I (sprint status)   ─ standalone bajo demanda
 J (i18n coherence)  ─ standalone, auto-trigger por path; G paso 9 también; locales dinámicos
 K (self-check)      ─ standalone, validar adopción al copiar la skill a un proyecto
 L (release/version) ─ standalone (dev local); pre-requisito de deploy a NAS/staging
+M (self-learning)   ─ standalone, BAJO PREGUNTA al usuario; captura aprendizajes reutilizables → skill/proyecto/tracker
 ```
+
+## Workflow M — Auto-aprendizaje bajo confirmación (self-learning)
+
+**Idea**: la skill mejora a partir del trabajo real. Cuando durante CUALQUIER tarea emerge un aprendizaje
+**reutilizable** (una gotcha, un antipatrón, una regla de factoría, una clase de bug recurrente, un gap de
+proceso), **proponer capturarlo — preguntando al usuario, ANTES de escribir**. NO es automático-silencioso:
+es "bajo pregunta". (Origen: el usuario pidió formalizar el modo con que ya se venían capturando aprendizajes
+como los invariantes 22/23 y el paso 7 de i18n.)
+
+**Disparo** (lo detecta el modelo por el contexto, no una frase fija): acabas de resolver algo cuya lección
+serviría a un caso FUTURO. Señales típicas:
+- Un fix que corrige una **clase** de error, no solo una instancia (p.ej. "el audit i18n se saltaba `t()`
+  multilínea" → paso 7 de J; "hotfix no exento de red→green" → invariante 22).
+- Un **antipatrón que reaparece** (fetch sin caché en el chrome que re-monta; editor lateral que no persiste
+  el idioma por defecto en el switch).
+- Una **regla que el usuario acaba de fijar** ("labels i18n agnósticos", "créditos: invalidar la caché tras
+  mutación").
+- Un **gap de cobertura/proceso** descubierto (cross-locale no detecta claves ausentes en TODOS los locales).
+
+**Secuencia**:
+1. **Formular el aprendizaje en 1 línea** (qué + por qué importa a futuro).
+2. **Clasificar el DESTINO por naturaleza** (crítico — respeta la frontera agnóstico/proyecto):
+   - **Agnóstico** (testing, proceso, patrón portable) → **la skill**: invariante nuevo o paso de workflow.
+   - **Específico del proyecto** (arquitectura, factoría concreta, sesgo de vertical) → **peer doc del
+     proyecto** (`CLAUDE.md` / `docs/analysis/…`) y/o **memoria del agente**. NUNCA a la skill (es agnóstica;
+     un aprendizaje mal ubicado proyecto→skill rompe la portabilidad — ver "Adopción" e invariante 20).
+   - **Bug abierto** → **bug tracker dual** (invariante 10).
+3. **Preguntar al usuario** (conciso, 1 pregunta con la propuesta YA redactada): *"Esto parece un aprendizaje
+   reutilizable: «‹línea›». ¿Lo añado a ‹destino›?"* → que solo tenga que decir sí / no / ajusta.
+4. **Al confirmar**, escribirlo en el destino: si es la skill, **commit dentro del submódulo** de la skill
+   (no bumpear el puntero en el repo host); si es del proyecto, en su doc/memoria; si es bug, en el tracker.
+
+**Guardarraíles**:
+- Solo aprendizajes **genuinamente reutilizables** — no one-offs ni detalles triviales.
+- **Sin spam**: si salen varios en una sesión, **agruparlos** y proponerlos juntos al cerrar el bloque.
+- **El usuario manda**: si dice que no, no se escribe (queda como nota efímera de la sesión).
+- La propuesta va **redactada**, no como pregunta abierta ("¿algo que aprender?") — el usuario aprueba, no diseña.
+
+**Criterio de "hecho"**: el aprendizaje queda en su destino correcto (skill / proyecto / tracker) con el
+**por qué**, o descartado explícitamente por el usuario.

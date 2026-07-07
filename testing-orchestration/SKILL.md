@@ -139,9 +139,10 @@ Casos típicos:
 | **F** | Manual UI test | "verificación manual" | A → guion UI → audit reactiva | reporte clasificado |
 | **H** | Validate migrations | edit `{{migrations_path}}*` | `validate_migrations.sh` | IDs únicos + chain coherente |
 | **I** | Sprint status | "report del sprint" | agrega runs + bugs + markers | reporte consolidado |
-| **J** | i18n coherence | edit `{{locales_path}}` | check N locales (lista dinámica) + cross-check user manual + tests | gaps reportados |
+| **J** | i18n coherence | edit `{{locales_path}}` | check N locales (dinámico) + **cobertura código→locale (paso 7, multilínea-safe)** + cross-check user manual + tests | gaps reportados |
 | **K** | Self-check de adopción | `/testing-orchestration self-check` | 8 verificaciones (peer doc, orquestador, docker stack, paths, locales, bug tracker dual, markers pytest, env vars) | 0 errores `[FAIL]` |
 | **L** | Release & versionado | "vamos a hacer release" / "tag de release" | `version:tag --release --patch\|--minor\|--major` | tag creado + push + `RELEASE_NOTES.md` promovido (Unreleased → bloque del tag) |
+| **M** | Auto-aprendizaje (self-learning) | emerge un aprendizaje reutilizable durante cualquier tarea | formular 1 línea → clasificar destino (skill/proyecto/tracker) → **PREGUNTAR al usuario** con la propuesta redactada → escribir al confirmar | aprendizaje capturado en su destino o descartado |
 
 **Plan G envuelve a los demás** durante el diseño de feature/fix:
 
