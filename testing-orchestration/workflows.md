@@ -698,6 +698,15 @@ echo "=== Self-check completado: $ERRORS error(es) críticos ==="
 **Principios**:
 1. **Una sola máquina source-of-truth crea tags.** El comando `manage.sh version:tag` exige flag `--release` para impedir uso accidental en servers de deploy (dos máquinas creando `v0.5.1` en paralelo causaría colisión en `git push --tags`).
 2. **Los deploys NO crean tags; los consumen.** Cualquier server hace `git pull` → recibe el tag → `git describe` lo ve → el build embebe `GIT_DESCRIBE=v0.5.1` como build arg → `/api/version` lo expone.
+   **⚠️ Secuencia OBLIGATORIA en el server de deploy (incidente real 2026-07-13, v0.4.15)**: `git pull` puede traer el COMMIT sin el TAG (el tag se pushea segundos después del push de main; un fetch en medio se lo pierde) → el build hornea el tag ANTERIOR (v0.4.14) y la trazabilidad incidente↔código miente. Regla:
+   ```bash
+   git pull --ff-only origin main
+   git fetch --tags origin                 # SIEMPRE, aunque el pull parezca al día
+   git describe --tags                     # GATE: debe ser EXACTAMENTE el tag esperado, sin sufijo -N-g
+   ./scripts/manage.sh build && ./scripts/manage.sh up:prod   # el describe se hornea EN el build
+   curl -s https://<dominio>/api/version   # verificar "describe" == tag esperado
+   ```
+   Si `git describe --tags` no da el tag esperado, NO buildear — investigar primero. Un build con describe stale requiere REBUILD tras traer el tag (mismo código, identificador distinto).
 3. **La decisión `--patch|--minor|--major` es humana.** Inferencia automática es siempre frágil. Heurística clara abajo.
 
 **Heurística para decidir el bump** (aplicar consistentemente):
