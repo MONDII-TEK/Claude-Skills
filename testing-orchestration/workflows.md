@@ -993,8 +993,21 @@ serviría a un caso FUTURO. Señales típicas:
    - **Bug abierto** → **bug tracker dual** (invariante 10).
 3. **Preguntar al usuario** (conciso, 1 pregunta con la propuesta YA redactada): *"Esto parece un aprendizaje
    reutilizable: «‹línea›». ¿Lo añado a ‹destino›?"* → que solo tenga que decir sí / no / ajusta.
-4. **Al confirmar**, escribirlo en el destino: si es la skill, **commit dentro del submódulo** de la skill
-   (no bumpear el puntero en el repo host); si es del proyecto, en su doc/memoria; si es bug, en el tracker.
+4. **Al confirmar**, escribirlo en el destino: si es la skill, seguir la sub-secuencia de abajo; si es del
+   proyecto, en su doc/memoria; si es bug, en el tracker.
+
+**Sub-secuencia OBLIGATORIA cuando el destino es LA SKILL** (decisión usuario 2026-07-14):
+1. **Redactarlo SIEMPRE con la skill `skill-creator:skill-creator`** (el experto en escritura de skills):
+   cargarla ANTES de escribir y aplicar sus principios — imperativo, explicar el porqué en vez de MUSTs,
+   generalizar desde el incidente (el caso concreto es motivación, no el alcance), integrarse con el estilo
+   y estructura existentes (invariantes numerados, casos típicos, frases de disparo en `description` si
+   procede) sin romper el frontmatter (solo `name`+`description` son claves válidas).
+2. **Commit dentro del submódulo** de la skill y push a su remoto; después bumpear el puntero en el repo
+   host (ambos con mensaje que cite el incidente/decisión de origen).
+3. **Reinstalar la copia que carga el runtime** con el comando de manage.sh:
+   `./scripts/manage.sh install:skill testing-orchestration --force` — sin este paso la sesión sigue
+   leyendo la copia vieja de `.claude/skills/` y el aprendizaje no surte efecto.
+4. Verificar que la copia instalada contiene el cambio (grep de una frase clave del texto nuevo).
 
 **Guardarraíles**:
 - Solo aprendizajes **genuinamente reutilizables** — no one-offs ni detalles triviales.
