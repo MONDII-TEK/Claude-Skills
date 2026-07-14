@@ -8,6 +8,7 @@ Detalle paso a paso de los 10 workflows orquestados por la skill. Cada uno con: 
 
 **Disparo canónico**:
 - Frase: *"voy a añadir feature X"*, *"voy a refactorizar Y"*, *"vamos a arreglar el bug Z"*, *"diseñemos plan para …"*.
+- **Doc de análisis con plan de implementación**: *"vamos a crear un doc de análisis para abordar desde él los cambios/fixes/procedimientos/tasks"* también dispara G — el plan que el documento incluye ES el plan de diseño y debe nacer con la estructura del plan-template (tests afectados, RBAC, i18n, gates, definition of done por PR) + test contracts (§H) e invariantes (§G) vinculantes para la auditoría inter-PR (invariante 11). No requiere que la sesión toque código ni ejecute tests: G aplica en la *redacción* del plan, no solo en su ejecución. La plantilla puede embeberse en el propio doc (una instancia por PR del plan) en lugar de emitirse inline en chat.
 - Estar editando código de servicio/ruta/modelo es la señal para invocarla cuando aún no hay plan G activo (no hay auto-trigger por archivo: usa una frase gatillo o el slash).
 - Slash: `/testing-orchestration design <título>`.
 
