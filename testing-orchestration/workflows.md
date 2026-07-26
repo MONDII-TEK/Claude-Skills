@@ -248,17 +248,31 @@ TESTS_DIR="${TESTS_DIR:-$BACKEND_PATH/tests}"
    git diff --name-only HEAD
 
 2. Para cada archivo en $BACKEND_PATH/{services,routes,repositories,models.py}:
-   - Extraer nombre de clase/función pública (Grep de export simbólico).
-   - Buscar tests que importen el módulo (CONFIANZA ALTA):
+
+   VÍA CANÓNICA — el grafo (invariante 27). La pregunta "qué tests tocan esto"
+   es una pregunta sobre RELACIONES, no sobre texto:
+   - search_graph  -> símbolos públicos que define el archivo cambiado
+   - trace_path(<símbolo>, mode=calls)  -> llamadores, incluidos los tests;
+                     alcanza alias de import, reexports y herencia, que es
+                     justo lo que la búsqueda textual NO ve
+   - trace_path(..., mode=data_flow)    -> si el cambio toca un dato que viaja
+                     (importe, id de ciclo, estado) y no solo una firma
+
+   FALLBACK DE URGENCIA (MCP caído / clon sin indexar). Se permite, pero el
+   resultado NO es un inventario: es una aproximación que hay que ETIQUETAR
+   como tal en el entregable (invariante 27, protocolo de fallback). Ampliar
+   el patrón a propósito, porque el riesgo es lo que se queda fuera:
        grep -lE "from ($BACKEND_PATH\.)?services\.<modulo>|import.*<modulo>" "$TESTS_DIR"
-   - Buscar tests por nombre simbólico (CONFIANZA MEDIA):
        grep -lE "<ClaseONombrePublico>" "$TESTS_DIR"
-   - Buscar tests por keyword del dominio (CONFIANZA BAJA):
        grep -lE "<dominio>" "$TESTS_DIR"
 
-3. Mapear archivos cambiados → tests recomendados con ranking:
+3. Mapear archivos cambiados → tests recomendados:
 
-   | Archivo cambiado | Test directo (alta) | Indirecto (media) | Por keyword (baja) |
+   | Archivo cambiado | Tests (por grafo) | Vía | Cobertura |
+
+   "Vía" = grafo | texto(fallback). Si alguna fila es texto(fallback), el
+   informe lo dice arriba en una línea: la lista puede estar incompleta y no
+   debe leerse como exhaustiva.
 
 4. Si cambios en $BACKEND_PATH/models.py (o equivalente):
    ALERTA: probable migración Alembic → workflow H (validate migrations).
