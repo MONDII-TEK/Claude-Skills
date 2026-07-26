@@ -192,9 +192,34 @@ grep -nE "PASSED|FAILED|ERROR|CRITICAL|InternalError" "${RUN_DIR}backend.log" | 
 0. BASELINE — antes de cualquier fix: correr la suite afectada (workflow C)
    y confirmar VERDE. Si arranca roja, primero estabilizar.
 
-1. ADD FAILING TEST — para el bug/feature: añadir un test que falle
-   capturando el comportamiento incorrecto/faltante. Ejecutar y
-   confirmar que efectivamente falla con mensaje esperado.
+1. ADD FAILING E2E TEST — para el bug/feature: añadir un test E2E que
+   falle capturando el comportamiento incorrecto/faltante. Ejecutarlo y
+   confirmar que EFECTIVAMENTE FALLA, y que falla por el motivo esperado.
+
+   E2E = test de API contra el sidecar stripe-cli con eventos REALES
+   (test:stripe). La acción se dispara por NUESTRO endpoint; los efectos
+   se esperan de los eventos que el proveedor emite de verdad.
+   Un unitario con mocks reproduce tu hipótesis del bug, así que se
+   pondrá verde con el fix aunque el bug siga vivo por el camino real —
+   y encima dejará un test que aparenta cubrirlo.
+
+   PROHIBIDO (invariantes 22 y 36) — dan verde falso:
+     - inyectar webhooks con payload propio,
+     - escribir/retocar la BBDD para colocar el escenario,
+     - aserciones que no prueban el E2E: comprobar lo que el propio
+       test fabricó, cuerpos bajo if/try que pueden no ejecutarse,
+       o afirmar algo lateral en lugar del hecho bajo prueba.
+
+   El test se ve fallar ANTES de tocar producción. Un test escrito
+   después del fix no ha demostrado nunca fallar, así que no se sabe si
+   comprueba algo.
+
+   Si falla por un motivo DISTINTO del esperado, eso es diagnóstico
+   nuevo: clasificarlo (invariante 35) antes de continuar al paso 2.
+
+   Si el caso no es alcanzable E2E: sondear antes de darlo por
+   imposible; si aun así no hay vía, DECLARARLO y dejar escrito en el
+   unitario sustituto qué parte del camino real no cubre.
 
 2. FIX — aplicar cambio mínimo de producción que hace pasar el test
    nuevo. Sin tocar otros tests.
