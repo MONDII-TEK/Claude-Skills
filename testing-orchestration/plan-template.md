@@ -47,7 +47,7 @@ La skill audita los **pasos conservados** por el arquitecto, no exige todos. Dec
   - El arquitecto **revisa** la predicción de la skill, descarta falsos positivos, añade 1-2 smoke tests críticos.
   - Output = **lista mínima óptima**: pequeña, focalizada, cobertura suficiente para detectar regresión localizada.
 
-**Variante C (hotfix)**: añadir test que reproduzca el bug **after-the-fact** si no se pudo escribir antes. Es no negociable — el cierre del hotfix exige el test de regresión.
+**Variante C (hotfix)**: el test de regresión es **no negociable** — sin él, el hotfix se cierra sin red. Lo que sí admite matiz es la SECUENCIA: si no se pudo ver el rojo antes del fix, hay que poder responder *cómo se sabe que ese test falla sin él* (invariante 22, apartado "cuando el rojo no se llegó a ejecutar") y dejarlo dicho en el commit. Lo que no vale es un test escrito después, nunca visto fallar y sin nadie que pueda explicar por qué debería.
 
 ### 2. Service layer (paso 1 del playbook)
 
@@ -189,7 +189,7 @@ Marca según variante:
 - [ ] Doc de políticas actualizado si surgió aprendizaje nuevo.
 
 **Variante C — Hotfix urgente**:
-- [ ] Test que reproduce el bug (after-the-fact si no se escribió antes).
+- [ ] Test que reproduce el bug. Si no se vio en rojo antes del fix, el commit dice cómo se sabe que falla sin él (invariante 22).
 - [ ] Test pasa tras fix.
 - [ ] Suite afectada verde.
 - [ ] Bug tracker: entrada movida al gemelo con causa raíz + post-mortem.
