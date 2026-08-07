@@ -210,6 +210,13 @@ Esta skill **asume** que el peer doc del proyecto (`CLAUDE.md`) describe la arqu
 
     **Caso real (2026-07-27)**: trabajando en un bug de comunicaciones aparecieron y se cerraron tres defectos sin relación con él — una fecha resuelta con la heurística "última fila por clave" que anunciaba el final de un ciclo distinto al cancelado; dos claves duplicadas en un mismo diccionario, donde editar la primera **no surtía efecto alguno** y el síntoma aparecía a ochocientas líneas de distancia; y una pantalla financiera que ofrecía filtrar por un solo proveedor y, cuando el dato faltaba, **inventaba** el proveedor en lugar de dejar el hueco. Los tres eran invisibles desde el trabajo original y los tres se habrían perdido. El del diccionario, además, ya había costado dos vueltas de diagnóstico **en esa misma sesión** antes de que nadie lo mirara de frente.
 
+39. **Los tests nuevos se añaden al PRINCIPIO del fichero, no al final.** Pytest ejecuta en orden de definición y en este repo el **failfast está activo por defecto**, así que un test escrito al final es un test que a menudo no llega a ejecutarse: cualquier rojo anterior —o un flaky de la pasarela— corta la pasada antes. Quien está iterando sobre su propio caso se queda sin ver su resultado, que es justo lo contrario de lo que necesita en ese momento.
+
+    **Por qué esto y no un flag**: `-k` filtra bien pero hay que acordarse en cada invocación, y en cuanto se olvida vuelve el problema. `--ff` (*failed-first*) sería el default correcto —ejecuta primero lo que falló y sigue con el resto, combinando lo mejor de ambos— pero **hoy no funciona**: el contenedor de test se crea nuevo en cada run y monta solo `tests`, `pytest.ini` y `client`, así que el caché donde pytest anota qué falló muere con él. Habilitarlo exige montar un volumen para `/app/.pytest_cache` **y** añadir el flag en `manage.sh`; hasta entonces, colocar el test arriba es la única solución que no depende de recordar nada.
+
+    **El coste de no hacerlo, medido (2026-07-30)**: cerrando la batería de desenlaces simulados, cada iteración obligaba a filtrar con `-k` para que las clases nuevas —añadidas al final con `cat >>`— llegaran a ejecutarse. Eso encadenó cuatro relanzamientos por sidecar huérfano, porque filtrar y relanzar deprisa es exactamente el patrón que colisiona con un run anterior todavía vivo.
+
+
 ## Cuándo invocar esta skill
 
 Se activa por **frases gatillo del `description`** (el modelo decide al detectar el contexto) o invocándola **explícitamente** con `/testing-orchestration`. No hay auto-trigger por edición de archivos: las skills solo disponen de `name`+`description` para el disparo (ver cabecera).
