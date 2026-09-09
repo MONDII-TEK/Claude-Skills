@@ -229,6 +229,8 @@ Esta skill **asume** que el peer doc del proyecto (`CLAUDE.md`) describe la arqu
 
     **La asimetría que decide**: `test:unit` completo cuesta ~2-3 minutos; la regresión costó un bisect de una hora, un hotfix, un tag extra y un redeploy del stand. No hay presupuesto de tiempo que justifique omitirlo. Regla operativa: (a) el definition of done de fase/sprint lleva "test:unit completo en verde" junto a la suite del módulo; (b) un rojo unit que aparezca al abrir un frente nuevo se tría ANTES de construir encima (invariante 31 — puede ser una regresión heredada, como aquí, y "lo miro luego" es cómo llegó a producción); (c) al registrar el estado de una rama ("unit 3589 verde"), la cifra vale solo si el run es POSTERIOR al último commit de código — un verde de mitad de rama no certifica el final.
 
+    **El gate es la LISTA COMPLETA de familias del arnés, no las que la fase recuerde** (aprendizaje 2026-09-09): al día siguiente de aprender este invariante, el gate de la fase siguiente incluyó diligentemente la familia recién aprendida (unit) — y omitió la de tareas de fondo, que las fases anteriores sí corrían. Es el mismo fallo con otra víctima: un gate compuesto DE MEMORIA arrastra siempre la familia que el frente actual no tocó, porque "lo que no toqué no puede romperse" es exactamente el razonamiento que el invariante 41 desmonta (un default global, un helper compartido o un flip de contrato alcanzan familias que el diff no menciona). El remedio no es "acordarse más": el gate se compone ENUMERANDO las familias del arnés del proyecto —unitaria, API/integración, E2E de proveedor completa (con sus fases heavy y aislada-flaky), tareas de fondo, y las que el arnés añada— y el registro de cierre nombra CADA una con su resultado; una familia ausente del registro es un gate incompleto, no un gate aprobado. Si una familia se excluye deliberadamente (no existe en el proyecto, o es inaplicable al cambio por una razón argumentable), la exclusión se ESCRIBE en el registro — el silencio y la decisión no pueden ser indistinguibles.
+
 ## Cuándo invocar esta skill
 
 Se activa por **frases gatillo del `description`** (el modelo decide al detectar el contexto) o invocándola **explícitamente** con `/testing-orchestration`. No hay auto-trigger por edición de archivos: las skills solo disponen de `name`+`description` para el disparo (ver cabecera).
@@ -528,6 +530,7 @@ nombres en los docs). No hay copias en la skill ni hook de sincronización que m
 - Tests de la regresión scope = verde.
 - Suite afectada = sin regresiones.
 - **`test:unit` COMPLETO en verde tras el último commit de código** (invariante 41 — los E2E no lo sustituyen).
+- **Gate por ENUMERACIÓN de familias, no de memoria** (invariante 41): el registro de cierre nombra CADA familia del arnés (unitaria, API/integración, E2E de proveedor completa, tareas de fondo, …) con su resultado; familia ausente = gate incompleto; exclusión deliberada = escrita con su razón.
 - xfail/xpass markers sincronizados.
 - Bug tracker activo + gemelo actualizados (entradas movidas en mismo commit).
 - User manual actualizado si hay impacto user-facing.
