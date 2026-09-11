@@ -356,6 +356,8 @@ fi
 
 **Defaults obligatorios del proyecto** (decisión del arquitecto 2026-05-27): TODO `test:*` se ejecuta con **`--no-failfast --debug`** salvo que el usuario explícitamente declare lo contrario. Razón: failfast oculta fallos múltiples y obliga a re-ejecutar; `--debug` aporta el output que la skill audita en post-run. El coste (tiempo extra y output más verboso) es aceptable frente a la falsa señal verde / información insuficiente. Aplica a `test:unit`, `test:module`, `test:api`, `test:bg`, `test:stripe`, `test:full`.
 
+**OJO: "default del proyecto" ≠ default de `manage.sh`.** El script arranca con failfast ACTIVO; este default solo existe si el operador pasa `--no-failfast` **en cada invocación** — gates de cierre incluidos, que es justo donde más se olvida porque "solo se está verificando". Caso real (2026-09-11, gate 2c-2): el `test:unit` del gate corrió sin el flag y reportó **1 rojo**; la misma suite con `--no-failfast` destapó **44 en 9 ficheros** (un barrido mecánico del canon UoW que el corte escondía). Diagnosticarlos de uno en uno habría costado un ciclo build+run completo POR rojo; con la enumeración entera se arreglaron en una sola pasada. Regla operativa: un run cuyo propósito es MEDIR el estado (gate, baseline, barrido post-refactor) sin `--no-failfast` no es una medición — es la primera línea de una lista truncada.
+
 | Caso | Flags propuestos (sobre los defaults) |
 |------|------------------|
 | Iteración rápida tras cambio puntual en un test | `--no-build` (los defaults ya incluyen `--no-failfast --debug`) |
