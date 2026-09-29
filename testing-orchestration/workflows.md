@@ -1005,6 +1005,51 @@ L (release/version) ─ standalone (dev local); pre-requisito de deploy a NAS/st
 M (self-learning)   ─ standalone, BAJO PREGUNTA al usuario; captura aprendizajes reutilizables → skill/proyecto/tracker
 ```
 
+## Workflow N — Integrar main en una rama y adoptar las factorías nuevas
+
+**Propósito**: una rama de trabajo se diseña contra el main que existía cuando se abrió. Si mientras tanto main incorpora una **factoría obligatoria** o un **invariante** nuevo (un registro, un decorador, un hook, una regla de diseño), la rama no los conoce. Compila y pasa sus tests, pero nace con una solución a medida justo donde el proyecto ya había decidido un patrón común. Nadie lo ve en el merge, porque git sólo detecta conflictos de texto, no de diseño. Este workflow convierte la integración con main en el momento en que la rama se entera de lo nuevo y lo adopta.
+
+**Disparo**, en cualquier dirección de la integración:
+- traer main a la rama (merge o rebase);
+- antes de mergear la rama a main;
+- retomar una rama después de que otra haya mergeado a main.
+
+**Pasos**:
+1. **Rango.** `B=$(git merge-base HEAD origin/main)`. Lo nuevo de main es `B..origin/main`. Si la rama ya integró main antes, el rango empieza en el último main integrado.
+2. **Qué trae main (documentos).** Revisa el diff del rango sobre las **fuentes de verdad del diseño**:
+   - el peer doc (`CLAUDE.md`): lista de factorías vigentes y secciones marcadas como obligatorias;
+   - el doc de arquitectura;
+   - esta skill: invariantes y workflows nuevos.
+
+   ```bash
+   git diff "$B"..origin/main -- CLAUDE.md ARCHITECTURE.md <ruta-skill>/ | less
+   git log --oneline "$B"..origin/main -- CLAUDE.md ARCHITECTURE.md <ruta-skill>/
+   ```
+
+   Anota cada factoría o invariante nuevo o modificado con su **criterio de aplicación** (la pregunta de diseño que decide si aplica; ver invariante 42).
+3. **Qué trae main (código).** Tras integrar, **reindexa el grafo** (invariante 27: el árbol es otro). Localiza los símbolos de cada factoría nueva —registro, decorador, hook— para conocer su punto de uso real, no el que recuerda el doc.
+4. **Aplicación al diseño de la rama.** Para cada factoría nueva, pasa su criterio por **todo** lo que la rama añade:
+   - entidades con dirección pública;
+   - textos que el usuario acepta;
+   - operaciones con efecto;
+   - cualquier otro criterio que declare la factoría.
+
+   Para el inventario de lo que añade la rama usa el grafo sobre `B..HEAD`, no la memoria de la sesión. Emite una tabla:
+
+   | Factoría nueva (main) | Criterio | Qué de la rama cae dentro | Entrada de registro / punto de uso / fila de matriz | Estado |
+   |---|---|---|---|---|
+
+   «No aplica» es un resultado válido, pero **se escribe con su porqué**: una fila ausente y una decisión no pueden ser indistinguibles.
+5. **Adopción.**
+   - Si la rama tiene doc de análisis o plan, actualízalo primero (el plan-guardian, workflow G, lo exige para el cierre).
+   - Implementa la adopción con su ciclo rojo→verde: la fila nueva en la matriz de la factoría es el test que debe fallar antes.
+   - Si la rama ya tenía una solución a medida para lo mismo, **se sustituye** por la factoría (invariante 19), no convive con ella.
+6. **Cierre.** La integración no está terminada hasta que la tabla del paso 4 no tiene filas pendientes, o las pendientes están planificadas en el doc de la rama con dueño. El gate de cierre de la rama (invariante 41) incluye la matriz de cada factoría adoptada.
+
+**Por qué no basta con "leer CLAUDE.md de nuevo"**: se lee buscando lo que uno ya espera encontrar. El diff del rango enseña sólo lo que cambió, que es justo lo que la rama no conoce. Y la tabla obliga a contestar la pregunta de diseño para cada pieza de la rama, en vez de concluir de un vistazo que «esto no va conmigo».
+
+---
+
 ## Workflow M — Auto-aprendizaje bajo confirmación (self-learning)
 
 **Idea**: la skill mejora a partir del trabajo real. Cuando durante CUALQUIER tarea emerge un aprendizaje
