@@ -233,6 +233,30 @@ Esta skill **asume** que el peer doc del proyecto (`CLAUDE.md`) describe la arqu
 
     **El gate es la LISTA COMPLETA de familias del arnés, no las que la fase recuerde** (aprendizaje 2026-09-09): al día siguiente de aprender este invariante, el gate de la fase siguiente incluyó diligentemente la familia recién aprendida (unit) — y omitió la de tareas de fondo, que las fases anteriores sí corrían. Es el mismo fallo con otra víctima: un gate compuesto DE MEMORIA arrastra siempre la familia que el frente actual no tocó, porque "lo que no toqué no puede romperse" es exactamente el razonamiento que el invariante 41 desmonta (un default global, un helper compartido o un flip de contrato alcanzan familias que el diff no menciona). El remedio no es "acordarse más": el gate se compone ENUMERANDO las familias del arnés del proyecto —unitaria, API/integración, E2E de proveedor completa (con sus fases heavy y aislada-flaky), tareas de fondo, y las que el arnés añada— y el registro de cierre nombra CADA una con su resultado; una familia ausente del registro es un gate incompleto, no un gate aprobado. Si una familia se excluye deliberadamente (no existe en el proyecto, o es inaplicable al cambio por una razón argumentable), la exclusión se ESCRIBE en el registro — el silencio y la decisión no pueden ser indistinguibles.
 
+42. **Las capacidades transversales viven en una factoría con REGISTRO; toda funcionalidad nueva que las toque se da de alta en él y en su matriz de tests, y se decide por CRITERIO, no por lista.** Algunos comportamientos no pertenecen a una pantalla, sino a *todas* las que cumplan una condición. Dos casos típicos:
+    - la **dirección pública** de un contenido: slug, redirección 301 al renombrar según una política configurable, 301 al listado si deja de estar disponible, e idioma que manda en el slug si el contenido es traducible;
+    - la **puerta de las operaciones** que exigen un aviso o consentimiento previo: se pregunta al *empezar* y se graba cada aceptación; sin sesión, en cada operación; con sesión, una vez por sesión, anclada a un identificador de sesión y nunca a fechas.
+
+    Si una capacidad así se implementa pantalla a pantalla, las copias divergen: una entidad olvida la redirección, otra decide el slug con otra regla, una operación nueva nace sin puerta. Nadie lo ve, porque cada pantalla funciona sola. Por eso se construye una sola vez, como factoría, en tres piezas:
+    - un **registro** declarativo, donde una entidad u operación nueva es una entrada;
+    - **puntos de uso únicos**: la función que asigna la dirección, el decorador de la ruta que ejecuta la operación y el hook del cliente;
+    - una **matriz de tests parametrizada** sobre el registro, de modo que olvidar una entrada produzca un rojo y no un hueco silencioso.
+
+    **El riesgo que este invariante previene es leer el inventario como si fuera la regla.** Cuando la factoría nace, se aplica a los casos de ese momento. Quien añade un módulo meses después ve esos nombres y concluye «esto era para aquellas pantallas». Por eso la aplicabilidad se decide con **preguntas de diseño**, que valen para cualquier módulo presente o futuro:
+    - *¿Esto tendrá una dirección que alguien pueda enlazar, compartir o indexar?* → factoría de direcciones públicas.
+    - *¿Alguien acepta aquí un texto, unas condiciones o un aviso?* → factoría de aceptaciones.
+    - *¿Esto EJECUTA algo con efecto para quien lo pide?* (crear, reservar, comprar, contratar, inscribirse, solicitar, enviar, entregar para evaluar, lanzar una acción automática) → puerta de operaciones, en el paso que ejecuta.
+
+    Consultar, navegar o preparar no es operación. La lista de lo que ya usa cada factoría es un inventario del estado actual, útil para buscar ejemplos, nunca el límite de su alcance.
+
+    Reglas operativas:
+    - (a) **Plan-guardian** (workflow G). Haz las tres preguntas en toda feature nueva, con más cuidado aún en un módulo que la factoría no conoce todavía. Si alguna es «sí», el plan nombra la entrada del registro, el punto de uso y la fila de la matriz. Una solución a medida es antipatrón aunque funcione, y una feature sin su fila en la matriz no está cerrada.
+    - (b) **Punto de aplicación.** La puerta se aplica en el servidor, en la ruta que ejecuta la operación (el cliente sólo decide *cuándo* preguntar). Así el comportamiento no depende de que cada pantalla se acuerde, y es idempotente: la misma operación, repetida o reintentada, obtiene la misma decisión.
+    - (c) **Contrato de la matriz.** Para cada entrada, cubre los estados de la configuración (p. ej. política fija / política que sigue al título; modo activo / inactivo) y los tipos de actor (anónimo, con sesión, administrador máximo).
+    - (d) **Cambios en la regla.** Si cambias la regla de la factoría, recorre el registro con el grafo antes de tocar las entradas (invariante 37). Caso real: el idioma que movía el slug estaba decidido con «es la fila original» en tres servicios. El cambio a «el idioma por defecto del sitio» se hizo en la factoría y se verificó con una matriz por entidad, no con tres parches.
+
+    Los nombres concretos del registro, los puntos de uso y los ficheros de la matriz viven en el peer doc del proyecto (`CLAUDE.md`).
+
 ## Cuándo invocar esta skill
 
 Se activa por **frases gatillo del `description`** (el modelo decide al detectar el contexto) o invocándola **explícitamente** con `/testing-orchestration`. No hay auto-trigger por edición de archivos: las skills solo disponen de `name`+`description` para el disparo (ver cabecera).
