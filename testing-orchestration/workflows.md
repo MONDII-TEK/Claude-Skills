@@ -1005,9 +1005,11 @@ L (release/version) ─ standalone (dev local); pre-requisito de deploy a NAS/st
 M (self-learning)   ─ standalone, BAJO PREGUNTA al usuario; captura aprendizajes reutilizables → skill/proyecto/tracker
 ```
 
-## Workflow N — Integrar main en una rama y adoptar las factorías nuevas
+## Workflow N — Integrar main en una rama: factorías nuevas y bugs dirigidos a la rama
 
 **Propósito**: una rama de trabajo se diseña contra el main que existía cuando se abrió. Si mientras tanto main incorpora una **factoría obligatoria** o un **invariante** nuevo (un registro, un decorador, un hook, una regla de diseño), la rama no los conoce. Compila y pasa sus tests, pero nace con una solución a medida justo donde el proyecto ya había decidido un patrón común. Nadie lo ve en el merge, porque git sólo detecta conflictos de texto, no de diseño. Este workflow convierte la integración con main en el momento en que la rama se entera de lo nuevo y lo adopta.
+
+Hay un segundo tipo de novedad que llega por el mismo camino: **bugs detectados en la rama desde fuera de ella**. Otra sesión, una instancia levantada con esa rama o una auditoría encuentran un defecto y lo anotan en el bug tracker de main, porque es el que se mergea primero. Esas entradas llevan un campo de rama (en este proyecto, `` **Rama**: `<rama>` ``) y sólo son útiles si la rama las lee al integrar main.
 
 **Disparo**, en cualquier dirección de la integración:
 - traer main a la rama (merge o rebase);
@@ -1028,6 +1030,18 @@ M (self-learning)   ─ standalone, BAJO PREGUNTA al usuario; captura aprendizaj
 
    Anota cada factoría o invariante nuevo o modificado con su **criterio de aplicación** (la pregunta de diseño que decide si aplica; ver invariante 42).
 3. **Qué trae main (código).** Tras integrar, **reindexa el grafo** (invariante 27: el árbol es otro). Localiza los símbolos de cada factoría nueva —registro, decorador, hook— para conocer su punto de uso real, no el que recuerda el doc.
+3b. **Bugs dirigidos a esta rama.** En el bug tracker activo (`{{bug_tracker_active}}`) tal como queda tras integrar, busca las entradas abiertas cuyo campo de rama nombra a esta rama:
+
+   ```bash
+   grep -n "\*\*Rama\*\*: \`$(git rev-parse --abbrev-ref HEAD)\`" <bug_tracker_active>
+   ```
+
+   Cada una entra en la tabla de cierre con su estado. Las posibilidades son:
+   - arreglada en la rama, con su rojo→verde; en el mismo commit la entrada se mueve al gemelo histórico (invariante 10);
+   - planificada en el doc de la rama, con dueño;
+   - descartada con su porqué, si ya no aplica.
+
+   Una entrada dirigida a la rama que se queda sin tocar es justo lo que este paso existe para impedir: alguien la vio y la escribió para esta rama, y la rama la ignora.
 4. **Aplicación al diseño de la rama.** Para cada factoría nueva, pasa su criterio por **todo** lo que la rama añade:
    - entidades con dirección pública;
    - textos que el usuario acepta;
@@ -1044,7 +1058,7 @@ M (self-learning)   ─ standalone, BAJO PREGUNTA al usuario; captura aprendizaj
    - Si la rama tiene doc de análisis o plan, actualízalo primero (el plan-guardian, workflow G, lo exige para el cierre).
    - Implementa la adopción con su ciclo rojo→verde: la fila nueva en la matriz de la factoría es el test que debe fallar antes.
    - Si la rama ya tenía una solución a medida para lo mismo, **se sustituye** por la factoría (invariante 19), no convive con ella.
-6. **Cierre.** La integración no está terminada hasta que la tabla del paso 4 no tiene filas pendientes, o las pendientes están planificadas en el doc de la rama con dueño. El gate de cierre de la rama (invariante 41) incluye la matriz de cada factoría adoptada.
+6. **Cierre.** La integración no está terminada hasta que ni la tabla del paso 4 ni la lista del 3b tienen filas pendientes, o las pendientes están planificadas en el doc de la rama con dueño. El gate de cierre de la rama (invariante 41) incluye la matriz de cada factoría adoptada.
 
 **Por qué no basta con "leer CLAUDE.md de nuevo"**: se lee buscando lo que uno ya espera encontrar. El diff del rango enseña sólo lo que cambió, que es justo lo que la rama no conoce. Y la tabla obliga a contestar la pregunta de diseño para cada pieza de la rama, en vez de concluir de un vistazo que «esto no va conmigo».
 
