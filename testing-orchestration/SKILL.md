@@ -266,6 +266,8 @@ Esta skill **asume** que el peer doc del proyecto (`CLAUDE.md`) describe la arqu
     - (c) **Legacy fabricado**: la migración perezosa se prueba FABRICANDO el estado anterior en el test (borrar las filas del derivado Y el dato del que la derivación depende — medidas, registro), y exigiendo que UNA petición del camino público lo complete y PERSISTA: la segunda petición no regenera (misma identidad de filas). Probar solo «sin derivados» y no «sin el dato previo» es exactamente el cruce que se escapó.
     - (d) **La traza es contrato**: todo camino perezoso que haga trabajo real deja un aviso con la clave del recurso; UNA aparición por recurso es la migración esperada, la RECURRENCIA de la misma clave delata persistencia rota (commit que no llega, algo borrando por detrás) — un fallo que sin la traza es invisible porque cada petición «funciona». El conjunto esperado debe ser finito y determinista por recurso, con tope de trabajo por petición (presupuesto), y esas limitaciones anti-bucle se escriben donde se implementan.
 
+44. **Entre medias del desarrollo, la selección de tests se AJUSTA al alcance del cambio; la suite completa es el GATE de cierre, no el ritmo de iteración.** Cada run intermedio lleva una lista escrita de antemano: el fichero del test nuevo más los dos o tres ficheros de regresión DIRECTA del cambio, seleccionados por NOMBRE (`test:module <fichero>` o `-k "<nombres>"`), con `--no-build` cuando solo cambiaron tests. Quedan fuera los barridos por palabra clave amplia (`-k "email or template"`): recogen decenas de ficheros ajenos, tardan diez minutos donde la lista ajustada tarda uno y arrastran tests de otras familias (E2E del proveedor dentro del runner unitario) que fallan por infraestructura y obligan a clasificar rojos que no son del cambio. Las familias completas —unitaria, API, tareas de fondo, E2E del proveedor— se lanzan UNA vez, en el gate de cierre del bloque o del PR (invariante 41), nunca como comprobación de cada edición. **Por qué**: decisión del responsable (2026-10-05) tras una sesión en la que los runs largos entre medias retrasaban más que las propias correcciones; la red completa ya se pasa antes de mergear, repetirla a medias no añade garantía y resta ritmo. Regla operativa: antes de lanzar, escribir la lista exacta y, si no cabe en una línea, es que el run no es intermedio sino de cierre.
+
 ## Cuándo invocar esta skill
 
 Se activa por **frases gatillo del `description`** (el modelo decide al detectar el contexto) o invocándola **explícitamente** con `/testing-orchestration`. No hay auto-trigger por edición de archivos: las skills solo disponen de `name`+`description` para el disparo (ver cabecera).
@@ -397,6 +399,7 @@ fi
 | Caso | Flags propuestos (sobre los defaults) |
 |------|------------------|
 | Iteración rápida tras cambio puntual en un test | `--no-build` (los defaults ya incluyen `--no-failfast --debug`) |
+| Run INTERMEDIO de un bloque en desarrollo (invariante 44) | lista ajustada por nombre: `test:module <fichero>` / `-k "<nombres>"` + `--no-build` si solo cambiaron tests; las familias completas quedan para el gate de cierre |
 | Validación pre-PR de un módulo | `-c` (coverage) sobre defaults |
 | Debug de regresión confusa | defaults (`--no-failfast --debug` ya cubren) |
 | Suite completa pre-merge | `test:full -c` con defaults |
