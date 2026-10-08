@@ -46,7 +46,7 @@ Los tests corren contra la **imagen Docker construida**, no contra código fuent
 
 ## 3. Ejecución secuencial, nunca paralela
 
-Todos los test modules comparten el mismo `test_schema` de `db-test`. Correr dos en paralelo provoca `relation "users" does not exist` (TRUNCATE cruzado).
+Todos los test modules comparten el mismo `test_schema` de `db-test`. Correr dos en paralelo provoca `relation "users" does not exist` (TRUNCATE cruzado). Dentro de UNA ejecución sí hay paralelismo: unit y API con pytest-xdist, un esquema/almacenamiento/conexiones por worker (SKILL invariante 45); E2E del proveedor en un solo proceso.
 
 **Patrón seguro** entre runs consecutivos:
 
