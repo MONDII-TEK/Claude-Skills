@@ -56,6 +56,7 @@ La skill audita los **pasos conservados** por el arquitecto, no exige todos. Dec
 - **Servicio nuevo / modificado**: `<ruta>::<nombre>`.
 - Retorna estructura estándar del proyecto (en IronVolt: `ServiceResult` con `.success / .data / .message / .status_code`; otros proyectos: el patrón equivalente declarado en CLAUDE.md).
 - **Sin SQL ni HTTP** en este paso — capa de repo para SQL, capa de routes para HTTP.
+- **Conectores únicos (inv. 48)**: si la operación toca visibilidad/indexabilidad, datos de personas, identificadores públicos o el registro de un recurso (imagen, fichero), nombra aquí el predicado o método único que la encarna y cómo lo llama; un filtro, lista o comprobación propios donde ya hay conector invalidan el plan.
 - **Test plan** (lo escribe paso 3): cobertura mínima del service (happy + ≥1 borde).
 
 ### 3. Unit test del servicio + ejecución subset focalizado (paso 2)
@@ -177,6 +178,7 @@ Marca según variante:
 - [ ] Manual UI ejecutado y reportado.
 - [ ] User manual actualizado.
 - [ ] Bug tracker activo + gemelo sincronizados.
+- [ ] Conectores únicos respetados (inv. 48): indexabilidad por el predicado «se ofrece», datos de personas por la vista `(objeto, quién pregunta)` del servicio, slug asignado tras validar, entradas laterales por la pieza única.
 - [ ] Doc de políticas actualizado si surgió patrón nuevo.
 - [ ] PR open con auditoría backend↔frontend (tabla):
 
