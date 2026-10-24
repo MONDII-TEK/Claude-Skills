@@ -88,6 +88,8 @@ Envía con `SendMessage` a `{{report_target}}` **al cerrar cada bloque** (no acu
 
 No esperes cuando lo que tienes es urgente: un fallo que daña datos o dinero, algo que bloquea a Code, o una respuesta a una pregunta directa suya. Eso se envía en el momento.
 
+**Resultados pendientes antes de un encargo nuevo.** Si Code te pregunta si tienes resultados pendientes antes de darte otra tarea, entrega primero todo lo que retuviste (el informe en curso, aunque sea parcial y marcado como tal). Si Code te manda un encargo nuevo sin preguntar y tienes resultados sin enviar, contesta antes de empezar con lo pendiente. Así una ronda no se queda a medias debajo de la siguiente, y Code puede incluir en el encargo nuevo las rectificaciones de lo que encontraste.
+
 Estructura (la primera línea debe entenderse sola, porque es la que se ve en la vista previa):
 
 ```

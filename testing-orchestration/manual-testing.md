@@ -181,3 +181,12 @@ Fuentes a inspeccionar según dominio:
 - **No inventar estado** que no puedes verificar. Si no puedes inspeccionar Stripe porque el usuario no tiene el ID de la subscription, **pedírselo**, no suponer.
 - **No usar el veredicto del usuario como prueba única** — el usuario reporta UX, la skill verifica capa técnica. Un *"parece que funcionó"* en UI puede esconder invariantes violadas en DB.
 - **Si datos ambiguos** → marcar **⚠️ PARCIAL** con gap concreto, no forzar PASS/FAIL.
+
+## 7. Coordinación con una sesión de QA por la UI (opcional)
+
+Solo aplica si el proyecto valida con una sesión aparte de QA por la UI (p. ej. la skill `ui-qa-alpha`): la sesión de código encarga las pruebas y la de QA devuelve informes.
+
+- **Antes de encargar pruebas nuevas, pregunta si tiene resultados pendientes de enviarte.** La sesión de QA retiene sus informes mientras la de código está ocupada, para no interrumpirla. Si le llega un encargo nuevo encima, la ronda anterior se queda a medias y los hallazgos se mezclan.
+- **Primero se reciben, después se encarga.** Lee lo pendiente, clasifícalo (§4) y corrige lo que toque. Solo entonces manda el encargo nuevo.
+- **El encargo nuevo cita sus rectificaciones.** Para cada hallazgo suyo ya corregido, di qué se cambió y cómo comprobarlo, y después lo nuevo que hay que probar. Así la revalidación cierra los hallazgos uno a uno y no se convierte en otra ronda genérica.
+
