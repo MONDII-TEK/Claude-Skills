@@ -18,7 +18,7 @@ Aprendidas en rondas reales. Cada una evita un error que ya pasó. Las direccion
 
 ## 1. Navegador y host
 - Usa el navegador que indique el usuario; si no dice nada, el integrado de la herramienta.
-- Siempre `{{stand_url}}` salvo la excepción de `SKILL.md` §2. Comprueba la instancia con `{{version_endpoint}}`.
+- Siempre `{{stand_url}}` (local). `{{stand_url_public}}` solo para lo que depende del host real, sin iniciar sesión (`SKILL.md` §2). Comprueba la instancia con `{{version_endpoint}}`.
 - Para leer, prefiere el texto de la página, el árbol de accesibilidad o JavaScript; la captura, solo para estética y coordenadas.
 
 ## 2. Recargas en caliente
