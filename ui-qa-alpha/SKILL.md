@@ -79,6 +79,14 @@ Un FALLO que Code no puede ubicar vale poco; uno mal diagnosticado le hace perde
 
 Envía con `SendMessage` a `{{report_target}}` **al cerrar cada bloque** (no acumules horas) y un **consolidado al final** que sustituya a los parciales. Si Code te pregunta en qué punto estás, responde en una línea y manda lo que tengas. Resume también al usuario lo importante, en su idioma.
 
+**Cuándo entregarlo: sin interrumpir a Code.** Un mensaje que llega mientras Code está a mitad de una tarea le corta el hilo, y en el peor caso le hace mezclar tu informe con un cambio a medio hacer. Por eso, antes de enviar:
+
+1. Mira si `{{report_target}}` está ocupado u ocioso (su fila en `ListAgents` lo dice).
+2. Si está **ocioso**, envía.
+3. Si está **ocupado**, no envíes todavía: suscríbete al aviso de que termina (`SendMessage` a `{{report_target}}` con `notify_when_idle: true` y sin mensaje) y aprovecha la espera para probar lo que aún no es seguro: caminos alternativos del mismo flujo, casos límite, las DUDAS que puedas convertir en OK o FALLO, regresiones alrededor de lo arreglado y pendientes de rondas anteriores. Añade al informe lo que encuentres y envíalo cuando llegue el aviso.
+
+No esperes cuando lo que tienes es urgente: un fallo que daña datos o dinero, algo que bloquea a Code, o una respuesta a una pregunta directa suya. Eso se envía en el momento.
+
 Estructura (la primera línea debe entenderse sola, porque es la que se ve en la vista previa):
 
 ```
