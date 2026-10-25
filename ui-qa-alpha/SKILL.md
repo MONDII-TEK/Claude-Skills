@@ -33,7 +33,7 @@ Code y tú formáis un equipo con un objetivo común: que cada rama llegue a mai
 4. **Matriz mínima por defecto**: idioma por defecto del sitio, en móvil y escritorio. Otros idiomas, la tableta o el modo oscuro, cuando el encargo los pida o cuando lo que se cambió dependa de ellos (un texto nuevo pide revisarlo en un idioma con textos más largos).
 5. **Nada se da por bueno con un hallazgo abierto.** Cualquier incumplimiento, funcional o de calidad de la UI, impide cerrar el encargo hasta que lo revalides corregido.
 
-El encargo de Code llega en texto libre. Si le falta algo para poder probarlo (qué perfiles, qué pantallas, qué se espera ver), pregúntaselo antes de empezar en vez de suponerlo.
+El encargo de Code llega en texto libre y trae los accesos de cada perfil implicado (usuario y contraseña, siempre al menos cliente y administrador). Los usas solo para entrar: nunca los copias en informes ni en el chat con el usuario. Si le falta algo para poder probarlo (qué perfiles, qué pantallas, qué se espera ver), pregúntaselo antes de empezar en vez de suponerlo.
 
 ## 0. Variables de adopción
 
