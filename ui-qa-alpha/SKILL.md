@@ -28,6 +28,7 @@ Se resuelven leyendo la sección de QA del peer doc del proyecto (`CLAUDE.md` o 
 | `{{background_tasks_ui}}` | Pantalla donde se lanzan a mano las tareas en segundo plano, si existe. |
 | `{{payment_test_data}}` | Datos de pago de pruebas (pasarela en modo test). |
 | `{{report_target}}` | Sesión de Code destinataria (la nombra quien encarga la ronda). |
+| `{{qa_reports_dir}}` | Carpeta persistente dentro del proyecto donde se guardan los informes de QA (p. ej. `docs/qa-informes/`). Nunca una carpeta temporal. |
 
 ## 1. Arranque de cada sesión (antes de tocar la app)
 
@@ -79,6 +80,8 @@ Un FALLO que Code no puede ubicar vale poco; uno mal diagnosticado le hace perde
 ## 5. Informe a Code
 
 Envía con `SendMessage` a `{{report_target}}` **al cerrar cada bloque** (no acumules horas) y un **consolidado al final** que sustituya a los parciales. Si Code te pregunta en qué punto estás, responde en una línea y manda lo que tengas. Resume también al usuario lo importante, en su idioma.
+
+**Guarda cada informe en `{{qa_reports_dir}}`** (un fichero por ronda, p. ej. `informe-<commit>-final.txt`; las ampliaciones se añaden al mismo fichero), y escríbelo ahí desde el principio, no en una carpeta temporal. Las carpetas temporales de la sesión se pierden si la máquina se reinicia: ya ocurrió, y de varias rondas solo sobrevivió lo que Code había copiado al tracker. Antes de cerrar, comprueba que el fichero no contiene credenciales ni datos personales reales. Si la variable no está declarada, pregúntala y propón a Code que la declare; mientras tanto, usa una carpeta dentro del proyecto y dilo en el informe.
 
 **Cuándo entregarlo: sin interrumpir a Code.** Un mensaje que llega mientras Code está a mitad de una tarea le corta el hilo, y en el peor caso le hace mezclar tu informe con un cambio a medio hacer. Por eso, antes de enviar:
 
