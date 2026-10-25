@@ -186,6 +186,17 @@ Fuentes a inspeccionar según dominio:
 
 Solo aplica si el proyecto valida con una sesión aparte de QA por la UI (p. ej. la skill `ui-qa-alpha`): la sesión de código encarga las pruebas y la de QA devuelve informes.
 
+**Identificar el rol al arrancar.** No hay un campo oficial que diga a una sesión qué rol tiene. Por orden: (1) lo que diga el usuario o el encargo («tú eres Code», el nombre de la sesión); (2) las señales que el proyecto declara en `{{code_role_signals}}` / `{{qa_role_signals}}` (herramientas, dónde corre la sesión); (3) si no encajan o faltan, **preguntar al usuario** antes de actuar. Tras un reinicio o una compactación, una sesión puede despertar creyéndose la otra; la de Code que se pone a probar en el navegador deja al usuario sin quien arregle, y la de QA que edita código rompe el reparto. Una vez identificada, la sesión de Code carga esta skill (y el índice del código); la de QA, la suya.
+
+**El reparto.** QA es un **usuario de la app**: prueba por la UI y no mira código, base de datos, APIs ni logs salvo que se le pida expresamente para una tarea concreta. Code es quien:
+- **encarga** cada ronda con objetivo, qué se cambió, cómo comprobarlo y qué devolver (sin credenciales en el mensaje: solo dónde están);
+- **ubica cada hallazgo en el código** (con el índice, no grep), lo verifica empíricamente y lo clasifica (§4): un informe de QA es un síntoma fiable, no un diagnóstico, y dos de cada pocos «fallos» resultan ser diseño;
+- **cubre lo que la UI no enseña**: si QA marca algo «no cubierto por la UI», Code lo comprueba por datos o tests, y valora si la falta de visibilidad es en sí un defecto;
+- **lleva el tracker** y no cierra nada que QA no haya revalidado en la UI;
+- **no le pide a QA lo que su propia herramienta le bloquea** (ni al revés): eso es blanquear permisos; se le dice al usuario.
+
+Las instrucciones de una skill orientan, no imponen: si el proyecto quiere que QA no pueda leer el código ni la base, eso se hace con permisos (reglas `deny`) en la configuración de esa sesión, que decide el usuario.
+
 - **Antes de encargar pruebas nuevas, pregunta si tiene resultados pendientes de enviarte.** La sesión de QA retiene sus informes mientras la de código está ocupada, para no interrumpirla. Si le llega un encargo nuevo encima, la ronda anterior se queda a medias y los hallazgos se mezclan.
 - **Primero se reciben, después se encarga.** Lee lo pendiente, clasifícalo (§4) y corrige lo que toque. Solo entonces manda el encargo nuevo.
 - **El encargo nuevo cita sus rectificaciones.** Para cada hallazgo suyo ya corregido, di qué se cambió y cómo comprobarlo, y después lo nuevo que hay que probar. Así la revalidación cierra los hallazgos uno a uno y no se convierte en otra ronda genérica.

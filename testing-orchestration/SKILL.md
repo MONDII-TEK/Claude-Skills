@@ -1,6 +1,6 @@
 ---
 name: testing-orchestration
-description: Guardián del ciclo de testing y de las buenas prácticas de todo cambio de comportamiento en proyectos Python/Flask + Docker (manage.sh) — plan-guardian, test rojo→fix→verde con E2E, gates de cierre, migraciones, i18n, release notes y tags. Cárgala ANTES de empezar cualquier feature, fix, bug, rework, refactor, hotfix o doc de análisis con plan, sobre todo cuando el arranque es escueto y nombra el trabajo por su ID sin decir «feature» ni «fix» («vamos con BUG-123 doc 45», «seguimos con el doc N», «implementa el PR 2», «let's do BUG-N»). También al lanzar o diagnosticar tests (test:unit/module/api/bg/stripe, rebuild), tocar migraciones o i18n, preparar release o release notes, mergear o traer main, auditar código o ver qué tests cubren algo (con el grafo, no grep), añadir un guard o cambiar una firma compartida, ante hallazgos de Lighthouse o Search Console, bugs de «no se refresca» y cuando piden «apúntalo» o «que no se repita».
+description: Guardián del ciclo de testing y de las buenas prácticas de todo cambio de comportamiento en proyectos Python/Flask + Docker (manage.sh) — plan-guardian, test rojo→fix→verde con E2E, gates de cierre, migraciones, i18n, release notes y tags. Cárgala ANTES de empezar cualquier feature, fix, bug, rework, refactor, hotfix o doc de análisis con plan, sobre todo cuando el arranque es escueto y nombra el trabajo por su ID sin decir «feature» ni «fix» («vamos con BUG-123 doc 45», «seguimos con el doc N», «implementa el PR 2», «let's do BUG-N»). También al lanzar o diagnosticar tests (test:unit/module/api/bg/stripe, rebuild), tocar migraciones o i18n, preparar release o release notes, mergear o traer main, auditar código o ver qué tests cubren algo (con el grafo, no grep), añadir un guard o cambiar una firma compartida, ante hallazgos de Lighthouse o Search Console, bugs de «no se refresca» y cuando piden «apúntalo» o «que no se repita». Es la guía del rol Code frente a una sesión de QA.
 ---
 
 <!--
@@ -17,6 +17,10 @@ Frontmatter notes (Claude Code skill format constraints):
 # Testing orchestration
 
 Orquesta el ciclo de testing automatizado de un proyecto Python/Flask sobre Docker y actúa como guardián de buenas prácticas para nuevas funcionalidades y fixes. Entry point exclusivo para Docker/test/env: el script de orquestación del proyecto (`./scripts/manage.sh` o equivalente; **regla absoluta — nunca `docker compose` directo**).
+
+## Rol de esta sesión: Code
+
+Esta skill es la guía de la sesión de **Code** (edita código, ejecuta tests, lleva el tracker). Si el proyecto valida con una sesión aparte de QA por la UI, identifica tu rol al arrancar y respeta el reparto: `manual-testing.md` §7. Si lo que te piden es probar la app como usuario en el navegador, ese es el rol de QA, no el tuyo: dilo y pregunta antes de actuar.
 
 ## Adopción al proyecto (LEER PRIMERO)
 
