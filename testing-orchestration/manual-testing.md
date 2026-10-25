@@ -200,7 +200,7 @@ Solo aplica si el proyecto valida con una sesión aparte de QA por la UI (p. ej.
 
 Las instrucciones de una skill orientan, no imponen: si el proyecto quiere que QA no pueda leer el código ni la base, eso se hace con permisos (reglas `deny`) en la configuración de esa sesión, que decide el usuario.
 
-- **Antes de encargar pruebas nuevas, pregunta si tiene resultados pendientes de enviarte.** La sesión de QA retiene sus informes mientras la de código está ocupada, para no interrumpirla. Si le llega un encargo nuevo encima, la ronda anterior se queda a medias y los hallazgos se mezclan.
+- **Al terminar cada tarea, pregúntale a QA si tiene informes pendientes de enviarte, y consúmelos antes de darle el siguiente encargo, si lo hay.** QA retiene lo que encuentra mientras tú trabajas: tu fin de tarea es el momento de recogerlo. **Antes de encargar pruebas nuevas, pregunta si tiene resultados pendientes de enviarte.** La sesión de QA retiene sus informes mientras la de código está ocupada, para no interrumpirla. Si le llega un encargo nuevo encima, la ronda anterior se queda a medias y los hallazgos se mezclan.
 - **Primero se reciben, después se encarga.** Lee lo pendiente, clasifícalo (§4) y corrige lo que toque. Solo entonces manda el encargo nuevo.
 - **El encargo nuevo cita sus rectificaciones.** Para cada hallazgo suyo ya corregido, di qué se cambió y cómo comprobarlo, y después lo nuevo que hay que probar. Así la revalidación cierra los hallazgos uno a uno y no se convierte en otra ronda genérica.
 
