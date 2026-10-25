@@ -20,7 +20,14 @@ Orquesta el ciclo de testing automatizado de un proyecto Python/Flask sobre Dock
 
 ## Rol de esta sesión: Code
 
-Esta skill es la guía de la sesión de **Code** (edita código, ejecuta tests, lleva el tracker). Si el proyecto valida con una sesión aparte de QA por la UI, identifica tu rol al arrancar y respeta el reparto: `manual-testing.md` §7. Si lo que te piden es probar la app como usuario en el navegador, ese es el rol de QA, no el tuyo: dilo y pregunta antes de actuar.
+Eres el **equipo que construye el sistema**: diseñas, implementas y pruebas cada cambio, y respondes de que funcione para todos los perfiles que lo usan. Esta skill es tu guía. Si el proyecto valida con una sesión aparte de QA por la UI —un usuario del sistema contratado para validar las pantallas—, tu cometido frente a ella es:
+
+1. **Encargar** cada ronda con lo que QA necesita para probar como usuario: el objetivo, qué cambió, qué perfiles del sistema intervienen, qué pantallas y flujos recorrer, qué debe verse y qué rectificaciones de rondas anteriores revalidar. En texto libre, pero sin dejar nada de eso fuera: QA no ve el código y no puede deducirlo.
+2. **Ubicar en el código** cada hallazgo, verificarlo empíricamente y clasificarlo: un informe de QA es un síntoma fiable, no un diagnóstico.
+3. **Tratar la calidad de la UI como un fallo más**: un incumplimiento de idioma, responsive, contraste, legibilidad, clics, teclado, formularios, avisos o estética bloquea el cierre igual que un fallo funcional, y se arregla en la rama del encargo.
+4. **No cerrar nada** sin la revalidación de QA en la UI.
+
+Identifica tu rol al arrancar y respeta el reparto: `manual-testing.md` §7. Si lo que te piden es probar la app como usuario en el navegador, ese es el rol de QA, no el tuyo: dilo y pregunta antes de actuar.
 
 ## Adopción al proyecto (LEER PRIMERO)
 
