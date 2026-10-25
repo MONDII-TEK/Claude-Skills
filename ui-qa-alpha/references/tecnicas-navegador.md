@@ -46,7 +46,7 @@ window.__toasts=[]; new MutationObserver(()=>{document.querySelectorAll('[data-s
 Si el toast sale al cargar una página, navega y sondea de inmediato durante unos 8 s recogiendo `[data-sonner-toast]`. Cuenta los toasts: dos avisos para un mismo hecho (uno con un código en crudo) es un hallazgo.
 
 ## 7. Registrar peticiones
-**Solo si te lo piden expresamente para una tarea concreta** (el veredicto sale de la UI; ver SKILL.md §2).
+**No lo uses para dar un veredicto**: la evidencia es la pantalla. Si necesitas saber qué devuelve el servidor, pídeselo a Code (SKILL.md §2).
 Envuelve `fetch` para capturar estado y cuerpo de lo que interese:
 ```js
 window.__log=[]; const of=window.fetch; window.fetch=async(...a)=>{const r=await of(...a); try{const u=typeof a[0]==='string'?a[0]:a[0].url; if(/checkout|cart/.test(u)) r.clone().text().then(t=>window.__log.push({u,s:r.status,b:t}));}catch(e){} return r;};
@@ -75,5 +75,5 @@ En `{{background_tasks_ui}}`, localiza el botón de ejecutar ahora de la tarjeta
 Las capturas pueden ir escaladas respecto al viewport: calcula con `getBoundingClientRect()` por la razón de escala. Tras navegar o hacer scroll, toma una captura nueva antes de un click por coordenadas.
 
 ## 12. Lectura de estado sin escribir
-- Las API públicas de lectura solo se consultan si te lo piden expresamente para una tarea concreta; por defecto, la evidencia es la pantalla.
+- No consultes las API: la evidencia es la pantalla. Lo que no se ve, pídeselo a Code.
 - Logs y base de datos, solo con `{{read_commands}}` y solo lectura.
