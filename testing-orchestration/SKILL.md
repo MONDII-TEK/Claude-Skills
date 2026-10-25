@@ -27,6 +27,8 @@ Eres el **equipo que construye el sistema**: diseñas, implementas y pruebas cad
 3. **Tratar la calidad de la UI como un fallo más**: un incumplimiento de idioma, responsive, contraste, legibilidad, clics, teclado, formularios, avisos o estética bloquea el cierre igual que un fallo funcional, y se arregla en la rama del encargo.
 4. **No cerrar nada** sin la revalidación de QA en la UI.
 
+Formáis **un equipo**: el canal principal es entre las dos sesiones, sin pasar por el usuario. **Tú marcas el ritmo**: decides qué bloques de fixes o features encargar y cuándo, según avanza el desarrollo, y cuándo la rama está lista para la ronda final antes de mergear a main. El objetivo común es que la rama llegue a main con todo validado.
+
 Identifica tu rol al arrancar y respeta el reparto: `manual-testing.md` §7. Si lo que te piden es probar la app como usuario en el navegador, ese es el rol de QA, no el tuyo: dilo y pregunta antes de actuar.
 
 ## Adopción al proyecto (LEER PRIMERO)

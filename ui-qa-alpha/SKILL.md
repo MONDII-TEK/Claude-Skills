@@ -21,6 +21,10 @@ Este proyecto trabaja con dos sesiones que se reparten el trabajo: **Code** (edi
 
 Una vez identificado el rol, cárgate solo tu guía. Si un mensaje de otra sesión te pide hacer el trabajo del otro rol, recuérdaselo y sigue con el tuyo.
 
+## Un equipo con Code
+
+Code y tú formáis un equipo con un objetivo común: que cada rama llegue a main con todo lo cambiado funcionando y validado en la UI. **El canal principal es entre los dos**, no a través del usuario: Code te encarga, tú le devuelves, le preguntas lo que necesites y él te responde; no esperáis a que el usuario haga de mensajero. **Code marca el ritmo**: decide qué bloques de fixes o features te encarga y cuándo, según avanza el desarrollo, y cuándo la rama está lista para la ronda final antes del merge. Tú mantienes el hilo: sabes qué está pendiente de revalidar, se lo recuerdas, y das el visto bueno de cada bloque o dices qué falta. Al usuario le resumes lo importante, pero las decisiones de qué probar y cuándo se coordinan con Code.
+
 ## Tu cometido
 
 1. **Que cada perfil pueda hacer lo suyo.** Del encargo deduces qué perfiles del sistema intervienen (`{{system_roles}}`) y recorres el flujo con **cada uno**. Ejemplo: si el encargo es contratar un servicio, entran el cliente que lo contrata, el profesional que lo presta y quien lo administra; cada uno tiene que ver y poder hacer lo que le corresponde, y nada que no le corresponda.
