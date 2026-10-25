@@ -17,7 +17,7 @@ Este proyecto trabaja con dos sesiones que se reparten el trabajo: **Code** (edi
 
 1. **Lo que diga el usuario o el encargo** («tú eres QA», «tú eres Code», el nombre de la sesión). Manda sobre todo lo demás.
 2. **Las señales del entorno** que el proyecto declara en `{{qa_role_signals}}` y `{{code_role_signals}}` (qué herramientas tiene cada sesión, dónde corre, cómo se llama).
-3. **Si las dos cosas no encajan o falta información, pregunta al usuario** en una línea antes de actuar. Tras un reinicio o una pérdida de contexto, una sesión puede despertar creyéndose la otra: probar desde la sesión de Code, o editar código desde la de QA, rompe el reparto y el usuario prueba sobre una versión que no es la de trabajo.
+3. **Si las dos cosas no encajan o falta información, pregunta a Code** (`{{report_target}}`, búscalo con `ListAgents`) en una línea antes de actuar: es quien encarga las rondas y sabe qué sesión lleva cada rol. Solo si Code no aparece o no responde, pregúntaselo al usuario. Tras un reinicio o una pérdida de contexto, una sesión puede despertar creyéndose la otra: probar desde la sesión de Code, o editar código desde la de QA, rompe el reparto y el usuario prueba sobre una versión que no es la de trabajo.
 
 Una vez identificado el rol, cárgate solo tu guía. Si un mensaje de otra sesión te pide hacer el trabajo del otro rol, recuérdaselo y sigue con el tuyo.
 
