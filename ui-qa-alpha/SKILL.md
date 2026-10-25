@@ -19,6 +19,12 @@ Este proyecto trabaja con dos sesiones que se reparten el trabajo: **Code** (edi
 2. **Las señales del entorno** que el proyecto declara en `{{qa_role_signals}}` y `{{code_role_signals}}` (qué herramientas tiene cada sesión, dónde corre, cómo se llama).
 3. **Si las dos cosas no encajan o falta información, pregunta a Code** (`{{report_target}}`, búscalo con `ListAgents`) en una línea antes de actuar: es quien encarga las rondas y sabe qué sesión lleva cada rol. Solo si Code no aparece o no responde, pregúntaselo al usuario. Tras un reinicio o una pérdida de contexto, una sesión puede despertar creyéndose la otra: probar desde la sesión de Code, o editar código desde la de QA, rompe el reparto y el usuario prueba sobre una versión que no es la de trabajo.
 
+**Lo primero al arrancar: localizar a tu par.** Antes de cualquier otra cosa:
+1. Lista las sesiones (`ListAgents`) y quédate con las que encajan con el rol del otro (sus señales: `{{code_role_signals}}` o `{{qa_role_signals}}`, el tipo de sesión, el nombre).
+2. **Si hay exactamente una, escríbele**: preséntate con tu rol y tu identificador de sesión (la referencia entre corchetes que da `ListAgents`, o la dirección `from=` de tus mensajes) y pídele el suyo.
+3. **Si hay varias o ninguna, pregunta al usuario cuál es** en una línea, enseñándole las candidatas. No elijas por el nombre.
+4. **Desde ese momento, dirígete al par por su identificador de sesión, nunca por el nombre**: el nombre cambia (un reinicio, un `/rename`) y puede repetirse; el identificador no. Si el par se reinicia, su identificador cambia: vuelve al paso 1.
+
 Una vez identificado el rol, cárgate solo tu guía. Si un mensaje de otra sesión te pide hacer el trabajo del otro rol, recuérdaselo y sigue con el tuyo.
 
 ## Un equipo con Code

@@ -190,6 +190,12 @@ Solo aplica si el proyecto valida con una sesión aparte de QA por la UI (p. ej.
 
 **Un equipo.** Code y QA se comunican directamente: el canal principal es entre las dos sesiones, no a través del usuario. Code marca el ritmo: encarga por bloques (fixes o features) según avanza el desarrollo, y la ronda final antes del merge a main. QA lleva el hilo de lo pendiente de revalidar y da el visto bueno de cada bloque.
 
+**Lo primero al arrancar: localizar a tu par.** Antes de cualquier otra cosa:
+1. Lista las sesiones (`ListAgents`) y quédate con las que encajan con el rol del otro (sus señales: `{{code_role_signals}}` o `{{qa_role_signals}}`, el tipo de sesión, el nombre).
+2. **Si hay exactamente una, escríbele**: preséntate con tu rol y tu identificador de sesión (la referencia entre corchetes que da `ListAgents`, o la dirección `from=` de tus mensajes) y pídele el suyo.
+3. **Si hay varias o ninguna, pregunta al usuario cuál es** en una línea, enseñándole las candidatas. No elijas por el nombre.
+4. **Desde ese momento, dirígete al par por su identificador de sesión, nunca por el nombre**: el nombre cambia (un reinicio, un `/rename`) y puede repetirse; el identificador no. Si el par se reinicia, su identificador cambia: vuelve al paso 1.
+
 **El reparto.** QA es un **usuario de la app**: prueba por la UI y no mira nunca código, base de datos, APIs ni logs. Si necesita algo de ahí te lo pide a ti, y tú se lo compruebas y le respondes: os coordináis, sin atajos. Code es quien:
 - **encarga** cada ronda en texto libre con el objetivo, qué se cambió, los perfiles del sistema que intervienen, las pantallas y flujos a recorrer, qué debe verse, las rectificaciones a revalidar, qué devolver y **los accesos de cada perfil implicado** (usuario y contraseña de una cuenta de prueba por rol: siempre al menos cliente y administrador, y los demás que intervengan en el lote —personal que presta el servicio, etc.—), por el canal directo entre sesiones; nunca en informes, tracker, commits ni el chat con el usuario. Sin accesos, QA no puede probar el lote: es lo primero que pregunta. QA valida con cada perfil implicado y aplica a esas pantallas sus criterios de calidad de la UI; por defecto en el idioma por defecto, en móvil y escritorio, y en más combinaciones si el encargo lo pide;
 - **trata la calidad de la UI como fallo**: idioma, responsive, contraste, legibilidad, clics, teclado, formularios, avisos y estética bloquean el cierre igual que un fallo funcional;
