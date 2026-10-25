@@ -21,7 +21,7 @@ Este proyecto trabaja con dos sesiones que se reparten el trabajo: **Code** (edi
 
 **Lo primero al arrancar: localizar a tu par.** Antes de cualquier otra cosa:
 1. Lista las sesiones (`ListAgents`) y quédate con las que encajan con el rol del otro (sus señales: `{{code_role_signals}}` o `{{qa_role_signals}}`, el tipo de sesión, el nombre).
-2. **Si hay exactamente una, escríbele**: preséntate con tu rol y tu identificador de sesión (la referencia entre corchetes que da `ListAgents`, o la dirección `from=` de tus mensajes) y pídele el suyo.
+2. **Si hay exactamente una, escríbele**: preséntate con tu rol y tu identificador de sesión (la referencia entre corchetes que da `ListAgents`, o la dirección `from=` de tus mensajes) y pídele el suyo. **En ese primer mensaje intercambiad los datos del proyecto para comprobar que sois pareja**: directorio del proyecto (`{{project_dir}}`), rama en curso y la identidad del stand (`sha` y `started_at` de `{{version_endpoint}}`). Quien recibe los compara con los suyos; si alguno no coincide, no es tu par (otro proyecto, otro stand u otra rama): díselo y vuelve al paso 1.
 3. **Si hay varias o ninguna, pregunta al usuario cuál es** en una línea, enseñándole las candidatas. No elijas por el nombre.
 4. **Desde ese momento, dirígete al par por su identificador de sesión, nunca por el nombre**: el nombre cambia (un reinicio, un `/rename`) y puede repetirse; el identificador no. Si el par se reinicia, su identificador cambia: vuelve al paso 1.
 
