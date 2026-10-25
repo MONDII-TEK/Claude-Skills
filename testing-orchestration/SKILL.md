@@ -1,6 +1,6 @@
 ---
 name: testing-orchestration
-description: Guardián del ciclo de testing y de las buenas prácticas de todo cambio de comportamiento en proyectos Python/Flask + Docker (manage.sh) — plan-guardian, test rojo→fix→verde con E2E, gates de cierre, migraciones, i18n, release notes y tags. Cárgala ANTES de empezar cualquier feature, fix, bug, rework, refactor, hotfix o doc de análisis con plan, sobre todo cuando el arranque es escueto y nombra el trabajo por su ID sin decir «feature» ni «fix» («vamos con BUG-123 doc 45», «seguimos con el doc N», «implementa el PR 2», «let's do BUG-N»). También al lanzar o diagnosticar tests (test:unit/module/api/bg/stripe, rebuild), tocar migraciones o i18n, preparar release o release notes, mergear o traer main, auditar código o ver qué tests cubren algo (con el grafo, no grep), añadir un guard o cambiar una firma compartida, ante hallazgos de Lighthouse o Search Console, bugs de «no se refresca» y cuando piden «apúntalo» o «que no se repita».
+description: Guardián del ciclo de testing y de las buenas prácticas de todo cambio de comportamiento en proyectos Python/Flask + Docker (manage.sh) — plan-guardian, test rojo→fix→verde con E2E, gates de cierre, migraciones, i18n, release notes y tags. Cárgala ANTES de empezar cualquier feature, fix, bug, rework, refactor, hotfix o doc de análisis con plan, sobre todo cuando el arranque es escueto y nombra el trabajo por su ID sin decir «feature» ni «fix» («vamos con BUG-123 doc 45», «seguimos con el doc N», «implementa el PR 2», «let's do BUG-N»). También al lanzar o diagnosticar tests (test:unit/module/api/bg/stripe, rebuild), tocar migraciones o i18n, preparar release o release notes, mergear o traer main, auditar código o ver qué tests cubren algo (con el grafo, no grep), añadir un guard o cambiar una firma compartida, ante hallazgos de Lighthouse o Search Console, bugs de «no se refresca» y cuando piden «apúntalo» o «que no se repita». Es la guía del rol Code frente a una sesión de QA.
 ---
 
 <!--
@@ -17,6 +17,19 @@ Frontmatter notes (Claude Code skill format constraints):
 # Testing orchestration
 
 Orquesta el ciclo de testing automatizado de un proyecto Python/Flask sobre Docker y actúa como guardián de buenas prácticas para nuevas funcionalidades y fixes. Entry point exclusivo para Docker/test/env: el script de orquestación del proyecto (`./scripts/manage.sh` o equivalente; **regla absoluta — nunca `docker compose` directo**).
+
+## Rol de esta sesión: Code
+
+Eres el **equipo que construye el sistema**: diseñas, implementas y pruebas cada cambio, y respondes de que funcione para todos los perfiles que lo usan. Esta skill es tu guía. Si el proyecto valida con una sesión aparte de QA por la UI —un usuario del sistema contratado para validar las pantallas—, tu cometido frente a ella es:
+
+1. **Encargar** cada ronda con lo que QA necesita para probar como usuario: el objetivo, qué cambió, qué perfiles del sistema intervienen, qué pantallas y flujos recorrer, qué debe verse y qué rectificaciones de rondas anteriores revalidar. En texto libre, pero sin dejar nada de eso fuera: QA no ve el código y no puede deducirlo.
+2. **Ubicar en el código** cada hallazgo, verificarlo empíricamente y clasificarlo: un informe de QA es un síntoma fiable, no un diagnóstico.
+3. **Tratar la calidad de la UI como un fallo más**: un incumplimiento de idioma, responsive, contraste, legibilidad, clics, teclado, formularios, avisos o estética bloquea el cierre igual que un fallo funcional, y se arregla en la rama del encargo.
+4. **No cerrar nada** sin la revalidación de QA en la UI.
+
+Formáis **un equipo**: el canal principal es entre las dos sesiones, sin pasar por el usuario. **Tú marcas el ritmo**: decides qué bloques de fixes o features encargar y cuándo, según avanza el desarrollo, y cuándo la rama está lista para la ronda final antes de mergear a main. El objetivo común es que la rama llegue a main con todo validado.
+
+Identifica tu rol al arrancar y respeta el reparto: `manual-testing.md` §7. Si lo que te piden es probar la app como usuario en el navegador, ese es el rol de QA, no el tuyo: dilo y pregunta antes de actuar.
 
 ## Adopción al proyecto (LEER PRIMERO)
 
