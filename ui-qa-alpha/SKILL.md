@@ -99,6 +99,8 @@ Prueba como un usuario alfa: flujos completos, no pantallas sueltas. Para cada b
 5. **Reglas de dominio visibles desde la UI**: las saca del peer doc (zona horaria del negocio, moneda configurada y nunca fija, producto agnóstico al sector, reglas fiscales…). Si la UI contradice una regla del peer doc, es un hallazgo aunque «funcione».
 6. **En la matriz del encargo** (por defecto, móvil y escritorio en el idioma por defecto): repite las pantallas en cada combinación; un fallo que solo sale en una, se reporta con esa combinación.
 
+**Las operaciones con efecto real piden turno.** El stand lo comparte Code: si guarda un cambio mientras pagas, devuelves o cancelas, el stand puede recargarse a mitad y dejar la operación a medias (la pasarela cobró o devolvió y el sistema no terminó su parte). Antes de una de esas operaciones avisa a Code («voy a cobrar / devolver / cancelar») y espera su «adelante»; no valides mientras él avisa de una tanda de cambios hasta su «stand listo» con la identidad del stand. Si ves un error de servicio no disponible o una operación que no tiene efecto, repórtalo con la hora exacta: es lo que permite a Code saber qué la cortó.
+
 Técnicas concretas del navegador (controles de Radix, toasts efímeros, registrar peticiones, PDFs en memoria, pasarela de pruebas, recargas en caliente, cerrar diálogos sin disparar descargas): `references/tecnicas-navegador.md`. Léela antes de la primera interacción.
 
 ## 4. Del síntoma al informe (sin código)
