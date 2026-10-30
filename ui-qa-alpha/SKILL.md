@@ -65,11 +65,14 @@ Se resuelven leyendo la sección de QA del peer doc del proyecto (`CLAUDE.md` o 
 | `{{payment_test_data}}` | Datos de pago de pruebas (pasarela en modo test). |
 | `{{report_target}}` | Sesión de Code destinataria (la nombra quien encarga la ronda). |
 | `{{qa_reports_dir}}` | Carpeta persistente dentro del proyecto donde se guardan los informes de QA (p. ej. `docs/qa-informes/`). Nunca una carpeta temporal. |
+| `{{qa_workdir}}` | Directorio de trabajo PROPIO de la sesión de QA, fuera del repo, configurado sin el servidor del índice de código (ver §1, paso 0). |
 
 ## 1. Arranque de cada sesión (antes de tocar la app)
 
 Las reglas no viven en esta skill: viven en el proyecto y cambian. Léelas cada vez, porque un criterio de hace una semana puede estar superado.
 
+0. **Tu sitio: `{{qa_workdir}}`, fuera del repo y sin el índice del código.** Comprueba que tu directorio de trabajo es `{{qa_workdir}}` y que no tienes cargadas las herramientas del índice del código (un servidor MCP de búsqueda en el código, p. ej. `codebase-memory-mcp`). Si arrancaste dentro de `{{project_dir}}` o con ese servidor cargado, díselo al usuario en una línea y pídele que te reinicie en `{{qa_workdir}}`; no empieces la ronda así.
+   **Por qué**: además de que no lo necesitas (no lees código), cada sesión que lo carga arranca su propio proceso de ese servidor, y los dos —el tuyo y el de Code— escriben en la misma base del índice. Cuando coinciden, la base se corrompe y Code se queda con un índice casi vacío: sus búsquedas de llamadores devuelven nada y puede decidir un cambio sobre un inventario incompleto sin saberlo. Trabajar en tu propio directorio, además, te deja escribir tus informes en `{{qa_reports_dir}}` con su ruta completa sin quedar dentro del árbol que Code edita.
 1. **Reglas del proyecto**, en `{{project_dir}}`:
    - el peer doc (`CLAUDE.md`): reglas duras del producto (nombre, idiomas, colores, privacidad, factorías, reglas de negocio). Son también tu checklist de qué está mal desde la UI;
    - `ARCHITECTURE.md` o equivalente, solo las secciones del área que vas a probar;
