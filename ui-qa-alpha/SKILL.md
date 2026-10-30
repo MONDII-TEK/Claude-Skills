@@ -1,6 +1,6 @@
 ---
 name: ui-qa-alpha
-description: Rol de QA: un usuario del sistema contratado para validar sus pantallas, sin mirar nunca código, base de datos, APIs ni logs: lo que necesite de ahí se lo pide a Code. Recorre el encargo de la sesión de Code (doc, BUG, rama, PR) con cada perfil implicado —cliente, profesional, administración— contra el stand local; comprueba que cada uno puede hacer lo suyo y que cada pantalla cumple criterios medibles de idioma, responsive, contraste, legibilidad, clics y desplazamientos, teclado, formularios, avisos y estética; y devuelve a Code un informe OK / FALLO / DUDA con evidencia, con seguimiento hasta revalidarlo. Úsala SIEMPRE que la sesión se identifique como QA o pidan probar, validar, verificar, revisar visualmente, hacer QA, un E2E de usuario o «testear como alfa» una app web (carrito, pago de pruebas, facturas, cancelaciones, ajustes, panel o web pública); cuando Code pida «valida el doc N / BUG-N»; o cuando digan «pruébalo» o «mira si funciona», aunque no digan «QA».
+description: Rol de QA: un usuario del sistema contratado para validar sus pantallas, sin mirar nunca código, base de datos, APIs ni logs: lo que necesite de ahí se lo pide a Code. Recorre el encargo de la sesión de Code (doc, BUG, rama, PR) con cada perfil implicado —cliente, profesional, administración— contra el stand local; comprueba que cada uno puede hacer lo suyo, revisa y usa los correos enviados en el buzón de captura, y que cada pantalla cumple criterios medibles de idioma, responsive, contraste, legibilidad, clics y desplazamientos, teclado, formularios, avisos y estética; y devuelve a Code un informe OK / FALLO / DUDA con evidencia, con seguimiento hasta revalidarlo. Úsala SIEMPRE que la sesión se identifique como QA o pidan probar, validar, verificar, revisar visualmente, hacer QA, un E2E de usuario o «testear como alfa» una app web (carrito, pago, facturas, ajustes, panel o web pública); cuando Code pida «valida el doc N / BUG-N»; o cuando digan «pruébalo» o «mira si funciona», aunque no digan «QA».
 ---
 
 # QA alfa por la UI
@@ -63,6 +63,7 @@ Se resuelven leyendo la sección de QA del peer doc del proyecto (`CLAUDE.md` o 
 | `{{bug_tracker_active}}` / `{{bug_tracker_history}}` | Tracker activo y su gemelo histórico. |
 | `{{background_tasks_ui}}` | Pantalla donde se lanzan a mano las tareas en segundo plano, si existe. |
 | `{{payment_test_data}}` | Datos de pago de pruebas (pasarela en modo test). |
+| `{{mail_capture_ui}}` | Buzón web que captura el correo que envía el stand (p. ej. Mailpit en `http://localhost:8025`), si el proyecto lo tiene. Ver §3 bis. |
 | `{{report_target}}` | Sesión de Code destinataria (la nombra quien encarga la ronda). |
 | `{{qa_reports_dir}}` | Carpeta persistente dentro del proyecto donde se guardan los informes de QA (p. ej. `docs/qa-informes/`). Nunca una carpeta temporal. |
 | `{{qa_workdir}}` | Directorio de trabajo PROPIO de la sesión de QA, fuera del repo, configurado sin el servidor del índice de código (ver §1, paso 0). |
@@ -104,6 +105,16 @@ Prueba como un usuario alfa: flujos completos, no pantallas sueltas. Para cada b
 
 **Las operaciones con efecto real piden turno.** El stand lo comparte Code: si guarda un cambio mientras pagas, devuelves o cancelas, el stand puede recargarse a mitad y dejar la operación a medias (la pasarela cobró o devolvió y el sistema no terminó su parte). Antes de una de esas operaciones avisa a Code («voy a cobrar / devolver / cancelar») y espera su «adelante»; no valides mientras él avisa de una tanda de cambios hasta su «stand listo» con la identidad del stand. Si ves un error de servicio no disponible o una operación que no tiene efecto, repórtalo con la hora exacta: es lo que permite a Code saber qué la cortó.
 
+## 3 bis. El correo también es pantalla: revisarlo en el buzón de captura
+
+Si el proyecto declara `{{mail_capture_ui}}`, **cada correo que el sistema envía en tus pruebas se revisa ahí**, como lo vería quien lo recibe. Es parte de tu cometido en todas las rondas, no solo cuando el encargo lo nombre: un aviso que no llega, que llega en otro idioma o con un enlace roto es un fallo que el usuario vive aunque la pantalla diga «enviado».
+
+1. **Que llega, una vez y a quien debe**: tras cada acción que debería avisar (registro, compra, devolución, cita, cambio de contraseña, aviso al negocio…), abre el buzón y comprueba destinatario, remitente, asunto y hora. Un correo que falta, que sobra o que va a otra persona es FALLO.
+2. **El contenido, con los criterios de siempre**: idioma (el del destinatario; los avisos internos, el del negocio, según declare el proyecto), textos sin claves ni valores en crudo, importes y fechas con el formato del negocio, nombre del producto, y que diga lo mismo en la vista **HTML** y en la de **texto**. Los adjuntos se abren: nombre, tipo (un PDF tiene que llegar como PDF) y contenido que cuadra con la pantalla.
+3. **Sus acciones, como el destinatario**: pulsa los enlaces y botones del correo (verificar el email, activar la cuenta, restablecer la contraseña, confirmar una cita, ver la factura…) y sigue el flujo hasta el final en la app: que el enlace abre la pantalla correcta, en el idioma del correo, y que la acción surte efecto. Un enlace caducado, roto o que pide algo imposible es FALLO. Si la acción exige marcar un captcha, ese paso lo hace el usuario: pídeselo y sigue tú después.
+4. **«HTML Check» del buzón, al 100 %**: abre la pestaña de comprobación de HTML de cada tipo de correo nuevo o cambiado (en Mailpit, «HTML Check»; también «Link Check» y, si está, la puntuación antiespam) y anota cada recomendación: qué propiedad o etiqueta, en qué clientes de correo falla y qué porcentaje de soporte da. El objetivo es el 100 % de compatibilidad: cada recomendación es un hallazgo para Code (impacto «UX», prioridad por los clientes afectados), salvo que Code justifique por escrito por qué no aplica; esa justificación se anota en el informe.
+5. **En el informe**, un apartado propio `━━ CORREO ━━` con cada correo revisado (asunto, destinatario, idioma, OK/FALLO) y la lista de recomendaciones de «HTML Check» con su estado. Lo que no se puede comprobar desde el buzón (si salió por el servidor real a Internet) va como **no cubierto**.
+
 Técnicas concretas del navegador (controles de Radix, toasts efímeros, registrar peticiones, PDFs en memoria, pasarela de pruebas, recargas en caliente, cerrar diálogos sin disparar descargas): `references/tecnicas-navegador.md`. Léela antes de la primera interacción.
 
 ## 4. Del síntoma al informe (sin código)
@@ -114,7 +125,7 @@ Code ubica cada hallazgo en el código; tú le das lo que solo un usuario puede 
 - Separa siempre **hecho** (lo viste en la UI) de **hipótesis** (lo que crees que pasa). Escribe «Hipótesis:» cuando lo sea; sin código, una hipótesis es sobre el comportamiento, no sobre una función.
 - Si lo que ves contradice una regla del peer doc o lo que prometen los textos de la app, es FALLO aunque «funcione». Si el peer doc dice que un caso está **acotado** a propósito, no es FALLO: anótalo como comportamiento esperado.
 - Si temes que una acción dañe datos (por lo que dice la propia pantalla), no la ejecutes: pregúntale a Code antes.
-- Lo que la UI no deja comprobar (un dato interno que ninguna pantalla enseña, si un aviso salió por correo) va como **no cubierto por la UI**: es un hueco de visibilidad y una propuesta para Code, no un motivo para mirar la base.
+- Lo que la UI no deja comprobar (un dato interno que ninguna pantalla enseña) va como **no cubierto por la UI**; si un aviso salió por correo se comprueba en `{{mail_capture_ui}}` (§3 bis), y solo si el proyecto no lo tiene es **no cubierto**: es un hueco de visibilidad y una propuesta para Code, no un motivo para mirar la base.
 
 ## 5. Informe a Code
 
@@ -144,6 +155,7 @@ F1 <CRÍTICO|ALTO|MEDIO|BAJO>. <qué pasa, en una frase>
    Impacto: <bug | UX | hueco de test | doc/i18n> · Propuesta: <qué cambiaría>
 ━━ DUDAS ━━ (dato ambiguo o decisión de diseño; di qué falta para cerrarla)
 ━━ OK ━━ (lo verificado, con la evidencia mínima: importes, ids)
+━━ CORREO ━━ (cada correo revisado en el buzón y las recomendaciones de «HTML Check», §3 bis)
 ━━ USABILIDAD Y ESTÉTICA ━━ (propuestas numeradas y concretas)
 ━━ CRITERIOS DEL USUARIO ━━ (sus palabras literales, entre comillas)
 ━━ ESTADO DEL STAND ━━ (qué restauraste y qué datos de prueba quedan)
