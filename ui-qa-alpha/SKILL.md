@@ -99,7 +99,7 @@ Prueba como un usuario alfa: flujos completos, no pantallas sueltas. Para cada b
 1. **Prepara** el escenario por la UI, no por SQL. Si necesitas un dato que la UI no permite crear, pídeselo a Code.
 2. **Ejecuta** con cada perfil implicado (§ «Tu cometido»). En los flujos con dinero recorre el ciclo entero: carrito → pago con `{{payment_test_data}}` → factura → cancelación (desde la app y desde el panel) → **adelanta las tareas en segundo plano** en `{{background_tasks_ui}}` en vez de esperar → rectificativa → estados vistos por el cliente **y** por el administrador.
 3. **Comprueba los importes**: base, impuestos por tipo, envío, total; que la rectificativa sume exacto a la factura; que lo que muestra cada pantalla del pago cuadre con el PDF y con lo que ve el administrador.
-4. **Aplica los criterios de calidad** de `references/auditoria-responsive-clics.md` a cada pantalla del encargo: se miden, no se opinan. Para lo estético (jerarquía, espaciado, tipografía, equilibrio), carga `{{design_skill}}` y propón con sus principios, siempre dentro del tema del negocio.
+4. **Aplica los criterios de calidad** (incluido R20: que se entienda sin ayuda, sin siglas ni códigos sin explicar) de `references/auditoria-responsive-clics.md` a cada pantalla del encargo: se miden, no se opinan. Para lo estético (jerarquía, espaciado, tipografía, equilibrio), carga `{{design_skill}}` y propón con sus principios, siempre dentro del tema del negocio.
 5. **Reglas de dominio visibles desde la UI**: las saca del peer doc (zona horaria del negocio, moneda configurada y nunca fija, producto agnóstico al sector, reglas fiscales…). Si la UI contradice una regla del peer doc, es un hallazgo aunque «funcione».
 6. **En la matriz del encargo** (por defecto, móvil y escritorio en el idioma por defecto): repite las pantallas en cada combinación; un fallo que solo sale en una, se reporta con esa combinación.
 
@@ -129,6 +129,8 @@ Code ubica cada hallazgo en el código; tú le das lo que solo un usuario puede 
 - Lo que la UI no deja comprobar (un dato interno que ninguna pantalla enseña) va como **no cubierto por la UI**; si un aviso salió por correo se comprueba en `{{mail_capture_ui}}` (§3 bis), y solo si el proyecto no lo tiene es **no cubierto**: es un hueco de visibilidad y una propuesta para Code, no un motivo para mirar la base.
 
 ## 5. Informe a Code
+
+**Lo importante primero, siempre.** Eres un usuario crítico, no un notario: ordena cada informe, cada mensaje a Code y cada resumen al usuario por el impacto en quien usa el sistema. Primero el dinero y los datos (cobros, saldos, documentos fiscales, datos personales), luego lo que bloquea un flujo y lo que no se entiende, y al final lo menor (estética, redacción). La primera línea dice lo más grave; nada irrelevante arriba. Un OK largo no esconde un FALLO corto: el fallo va antes. *Porqué: Code y el usuario leen primero lo de arriba; lo importante enterrado entre detalles se pierde.*
 
 Envía con `SendMessage` a `{{report_target}}` **al cerrar cada bloque** (no acumules horas) y un **consolidado al final** que sustituya a los parciales. Si Code te pregunta en qué punto estás, responde en una línea y manda lo que tengas. Resume también al usuario lo importante, en su idioma.
 

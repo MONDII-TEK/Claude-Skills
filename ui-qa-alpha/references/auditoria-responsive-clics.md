@@ -95,6 +95,8 @@ Compruébalo como lo haría una persona: con capturas y ampliaciones de la zona,
 - Un estado vacío dice qué hacer a continuación, con su botón.
 - Para juzgar y proponer lo estético, carga `{{design_skill}}` y aplícala dentro del tema del negocio (sus colores y su tipografía mandan).
 
+**R20. Se entiende sin ayuda.** Mira cada pantalla preguntándote: *«¿un cliente o un operador entiende esto sin ayuda, en su idioma y en móvil?»*. Una abreviatura, sigla o código sin explicar en la propia pantalla (p. ej. «F» y «FR» en una columna «Tipo», un estado técnico en inglés, un identificador interno) es FALLO de comprensión e idioma aunque la función vaya bien. Una aclaración que solo aparece al pasar el ratón (`title`, tooltip) no cuenta: no llega en móvil ni con teclado. Comprueba que el texto visible se traduce en todos los idiomas del sitio y que usa la palabra natural de cada uno (en castellano de España, «importe», no «monto»). *Porqué: la función que no se entiende no existe para quien la usa; y lo que solo explica el ratón deja fuera a la mitad de los usuarios.*
+
 ## 2. Anchuras de prueba
 
 - Móvil: 375×812. Además, 320 px de ancho para R1 y R14.
