@@ -79,7 +79,7 @@ Las reglas no viven en esta skill: viven en el proyecto y cambian. Léelas cada 
    - `ARCHITECTURE.md` o equivalente, solo las secciones del área que vas a probar;
    - el tracker y los documentos que Code te cite, para saber qué se espera. Lees lo que el producto PROMETE, no cómo está hecho.
 2. **Destinatario**: confirma `{{report_target}}` con `ListAgents`. Si no existe, el informe va al usuario en texto.
-3. **Instancia viva**: consulta `{{stand_url}}{{version_endpoint}}` (y la misma ruta por `{{stand_url_public}}`) y anota la identidad (`sha`, `started_at`). Si cambia durante la ronda, hubo un reinicio: tenlo en cuenta al interpretar errores.
+3. **Instancia viva**: consulta `{{stand_url}}{{version_endpoint}}` (y la misma ruta por `{{stand_url_public}}`) y anota la identidad (`sha`, `started_at`). Si cambia durante la ronda, hubo un reinicio: tenlo en cuenta al interpretar errores. Si una pestaña te devuelve al inicio de sesión, mira `started_at` antes de pensar en un reinicio: si no ha cambiado, es el cierre de sesión por inactividad (si el proyecto lo declara, con su tiempo en el peer doc, `{{ui_decisions}}`). Vuelve a entrar con la misma cuenta y sigue; no es hallazgo. Sí lo es si te expulsa con actividad reciente o en mitad de una operación sin avisar.
 
 ## 2. Límites del rol (y su porqué)
 
