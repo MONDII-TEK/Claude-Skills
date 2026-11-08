@@ -178,7 +178,7 @@ Cuándo aplica: una vez fix backend confirmado resolutorio (tests + verificació
 
 **Gemelo histórico**: `docs/analysis/051_bug_tracker_history.md` — todo cerrado / obsoleto / no-bug confirmado / dups. Append-only.
 
-**Plantillas copiables** (workflow #26 abrir, #27 cerrar): ver [bug-tracker-template.md](bug-tracker-template.md). Incluye plantilla mínima para activo, plantilla rica para gemelo, plantilla NO-BUG, operativa de reapertura, y comprobaciones de integridad ejecutadas en workflow I.
+**Plantillas copiables** (workflow #26 abrir, #27 cerrar): ver [bug-tracker-template.md](bug-tracker-template.md). Toda entrada se abre **categorizada** (área en la cabecera; `Toca`, `Afecta a`, `Riesgo`, `Bloque` en su primera línea) con las listas cerradas del tracker: sin categorías no se planifica por bloques. Incluye plantilla mínima para activo, plantilla rica para gemelo, plantilla NO-BUG, operativa de reapertura, y comprobaciones de integridad ejecutadas en workflow I.
 
 **Reglas operativas**:
 

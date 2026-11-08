@@ -102,7 +102,7 @@ Esta skill **asume** que el peer doc del proyecto (`CLAUDE.md`) describe la arqu
 7. **Tests configuran su policy** (no confiar en defaults globales — `SystemSettings`, feature flags, env config).
 8. **Integration tests no mockean DB**.
 9. **User manual = source of truth** (`{{user_manual_path}}` si existe). Mantener en sync con cambios funcionales.
-10. **Bug tracker dual**: activo (`{{bug_tracker_active}}`, mínimo de abiertos) + gemelo (`{{bug_tracker_history}}`, append-only). Mover entrada en el commit que cierra el bug — operación cohesiva en un único commit (atomicidad delegada a git, no transaccional a nivel filesystem).
+10. **Bug tracker dual**: activo (`{{bug_tracker_active}}`, mínimo de abiertos) + gemelo (`{{bug_tracker_history}}`, append-only). Mover entrada en el commit que cierra el bug — operación cohesiva en un único commit (atomicidad delegada a git, no transaccional a nivel filesystem). Toda entrada lleva al abrirse sus **categorías** —`Área` (en la cabecera), `Toca`, `Afecta a`, `Riesgo` y el `Bloque` del plan vigente—, con los valores de las listas cerradas del tracker (`bug-tracker-template.md` §1): es lo que permite planificar por bloques sin releer las entradas.
 11. **Auditoría inter-PR vs doc maestro** — en features grandes con plan vinculante (e.g. doc 063 logística DHL con §G matriz cobertura + §H test contracts), tras cerrar cada PR y antes de empezar el siguiente, auditar formalmente:
     - **Decisiones cerradas (§G)** asignadas al PR mergeado → todas implementadas en código real.
     - **Test contracts (§H)** asignados al PR → existen en `backend/tests/` y pasan en verde.

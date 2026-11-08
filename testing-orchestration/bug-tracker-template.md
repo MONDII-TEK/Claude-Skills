@@ -16,8 +16,9 @@ Plantillas literales que la skill `testing-orchestration` usa para mantener el b
 Mantener mínima: lo justo para reproducir y diagnosticar. Detalles extensos (timelines, evidence dumps, post-mortems) van al gemelo cuando se cierre.
 
 ```markdown
-### BUG-NNN: <título corto del síntoma observable>
+### BUG-NNN (ESTADO, SEVERIDAD — ÁREA): <título corto del síntoma observable>
 
+**Bloque**: <n (nombre del plan vigente, si lo hay)> · **Área**: <una de la lista cerrada del proyecto> · **Toca**: <qué habrá que cambiar> · **Afecta a**: <quién lo vive> · **Riesgo**: <uno>
 **Severidad**: Crítica / Alta / Media / Baja
 **Estado**: open / fixing
 **Detectado por**: <test que lo cazó / auditoría / report del usuario / manual UI test>
@@ -32,6 +33,16 @@ Mantener mínima: lo justo para reproducir y diagnosticar. Detalles extensos (ti
 ```
 
 **Reglas**:
+- **Categorías obligatorias (una entrada sin ellas no está abierta)**: `Área`, `Toca`, `Afecta a`, `Riesgo` y, si hay un plan
+  por bloques vigente, `Bloque`. Las listas son CERRADAS y las define el proyecto en su tracker (§Convenciones); se copian
+  tal cual, no se inventan valores sobre la marcha, y el área va también en la cabecera. Un juego razonable de partida:
+  `Toca` ∈ {modelo+migración, servicio, ruta API, cliente panel, cliente web, plantillas, nginx/compose, orquestador, solo
+  tests, docs} (varios); `Afecta a` ∈ {visitante, cliente, profesional, administración, superadmin, despliegue, interno}
+  (varios); `Riesgo` ∈ {dinero/fiscal, legal, seguridad, datos, ninguno} (uno); `Área`: la lista de dominios del producto.
+  **Por qué**: con un centenar de entradas abiertas, un plan por bloques se arma leyendo áreas e impactos, no títulos; sin
+  los campos hay que releer todas las entradas para planificar (caso real: 108 entradas sin categoría, 2026-11), y una
+  entrada de «solo tests» o «docs» no debe competir con una de dinero por el mismo hueco. Los campos se rellenan al ABRIR:
+  quien detecta el fallo es quien sabe qué toca; después nadie lo sabe mejor.
 - ID `BUG-NNN` incremental, **nunca reutilizar**. Próximo ID disponible: ver `051_bug_tracker.md` §Numeración.
 - IDs descartados / NO-BUG van al gemelo bajo prefijo `NOBUG-NNN` propio (numeración independiente).
 - Severidad: Crítica > Alta > Media > Baja (criterios en `051_bug_tracker.md` §Convenciones).
@@ -102,7 +113,8 @@ Pasos que la skill ejecuta cuando dispara workflow #26 (frase `"abrir bug X"` o 
 
 1. **Leer + asignar ID en una sola operación atómica del Edit**: leer `051_bug_tracker.md` §Numeración para obtener próximo BUG-NNN, e incrementarlo en el mismo Edit que añade la entrada (en lugar de dos Edits separados). Esto evita race conditions en sesiones concurrentes (poco probable en práctica pero correcto).
 2. **Rellenar §1 plantilla** con:
-   - Título corto del síntoma.
+   - Título corto del síntoma, con el ÁREA en la cabecera.
+   - Los campos de categoría (`Bloque`, `Área`, `Toca`, `Afecta a`, `Riesgo`) con los valores de las listas cerradas del tracker.
    - Severidad estimada.
    - Estado: `open`.
    - Detectado por: contexto de invocación (test que falló, manual UI report, etc.).
