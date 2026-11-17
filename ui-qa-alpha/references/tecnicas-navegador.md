@@ -15,6 +15,7 @@ Aprendidas en rondas reales. Cada una evita un error que ya pasó. Las direccion
 10. Tareas en segundo plano
 11. Coordenadas y capturas
 12. Lectura de estado sin escribir
+13. Comprobaciones por guion: nombre accesible y textos buscados
 
 ## 1. Navegador y host
 - Usa el navegador que indique el usuario; si no dice nada, el integrado de la herramienta.
@@ -77,3 +78,10 @@ Las capturas pueden ir escaladas respecto al viewport: calcula con `getBoundingC
 ## 12. Lectura de estado sin escribir
 - No consultes las API: la evidencia es la pantalla. Lo que no se ve, pídeselo a Code.
 - Logs y base de datos, solo con `{{read_commands}}` y solo lectura.
+
+## 13. Comprobaciones por guion: nombre accesible y textos buscados
+Un guion propio que recorre la página es rápido, pero su veredicto vale lo que su criterio, y dos fallos de criterio ya acabaron en hallazgos retirados:
+- **Nombre accesible**: no lo calcules con un filtro propio (texto o `aria-label`). El navegador lo compone también con `<label for>`, `aria-labelledby`, el contenido y el título; una casilla con su etiqueta asociada TIENE nombre aunque el elemento no lleve texto. Usa el árbol de accesibilidad del navegador o, en su defecto, implementa esas fuentes; ante la duda, pásale a Code el `outerHTML` de lo sospechoso en vez de darlo por fallo.
+- **Textos buscados**: antes de reportar «no aparece el aviso», confirma en una captura o leyendo la pantalla cuál es el texto real de ese estado. Un guion que busca el texto de otra pantalla da «no sale» aunque el aviso esté.
+*Porqué: un falso FALLO cuesta una ronda de Code buscando lo que no existe y resta crédito a los hallazgos reales.*
+
