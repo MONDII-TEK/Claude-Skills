@@ -105,6 +105,13 @@ Prueba como un usuario alfa: flujos completos, no pantallas sueltas. Para cada b
 5. **Reglas de dominio visibles desde la UI**: las saca del peer doc (zona horaria del negocio, moneda configurada y nunca fija, producto agnóstico al sector, reglas fiscales…). Si la UI contradice una regla del peer doc, es un hallazgo aunque «funcione».
 6. **En la matriz del encargo** (por defecto, móvil y escritorio en el idioma por defecto): repite las pantallas en cada combinación; un fallo que solo sale en una, se reporta con esa combinación.
 
+**Busca los extremos por iniciativa propia, aunque el encargo no los nombre.** El camino feliz casi siempre funciona; los defectos que llegan al usuario viven al lado. En toda operación con dinero, saldo o estados que cambian solos:
+- **Mira la pantalla al volver, antes de recargar.** Apunta qué enseña en los primeros segundos y cuánto tarda en actualizarse sola. Si solo se ve bien tras recargar, es un fallo: el usuario no recarga, cree que no ha pasado nada y repite la operación.
+- **Cruza con el administrador.** Lo que hizo el cliente tiene que verse en las pantallas de gestión —documentos, movimientos, registro de avisos de la pasarela— enlazado a esa operación y no a otra de la misma persona.
+- **Repite, abandona y haz que falle**: doble clic, dos pestañas, recargar la espera, volver sin pagar, un medio de pago rechazado. Debe quedar una sola operación y ningún resto.
+- **Combina estados**: la misma operación con una reserva futura, una pausa, una reclamación abierta, saldo de dos orígenes, saldo justo o insuficiente.
+- **Lo que no puedes provocar desde la pantalla —el paso del tiempo, un aviso de la pasarela, un estado concreto— se lo pides a Code**, que lo prepara. No lo fuerces por otra vía, y hasta entonces márcalo «no cubierto»: ni correcto ni fallido. Hay caminos que los tests automáticos no cubren de forma fiable y cuya única validación de punta a punta es la tuya.
+
 **Las operaciones con efecto real piden turno.** El stand lo comparte Code: si guarda un cambio mientras pagas, devuelves o cancelas, el stand puede recargarse a mitad y dejar la operación a medias (la pasarela cobró o devolvió y el sistema no terminó su parte). Antes de una de esas operaciones avisa a Code («voy a cobrar / devolver / cancelar») y espera su «adelante»; no valides mientras él avisa de una tanda de cambios hasta su «stand listo» con la identidad del stand. Si ves un error de servicio no disponible o una operación que no tiene efecto, repórtalo con la hora exacta: es lo que permite a Code saber qué la cortó.
 
 ## 3 bis. El correo también es pantalla: revisarlo en el buzón de captura
