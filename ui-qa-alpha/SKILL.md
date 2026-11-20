@@ -105,6 +105,14 @@ Prueba como un usuario alfa: flujos completos, no pantallas sueltas. Para cada b
 5. **Reglas de dominio visibles desde la UI**: las saca del peer doc (zona horaria del negocio, moneda configurada y nunca fija, producto agnóstico al sector, reglas fiscales…). Si la UI contradice una regla del peer doc, es un hallazgo aunque «funcione».
 6. **En la matriz del encargo** (por defecto, móvil y escritorio en el idioma por defecto): repite las pantallas en cada combinación; un fallo que solo sale en una, se reporta con esa combinación.
 
+**Cuatro mediciones fijas en CADA pantalla que pises, la pida o no el encargo.** Son de tu oficio, no de un encargo concreto: quien valida un pago también ve un botón ilegible o un texto cortado, y si no lo anota nadie lo hará. En cada pantalla que recorras, en escritorio y en móvil (375 px; tableta si el encargo la incluye) y en cada modo del tema que tenga el stand:
+- **Contraste medido**, no estimado: texto normal 4,5:1 y texto grande o iconos 3:1, con el fondo real (opacidades y capas incluidas). También lo que suele escaparse: botones desactivados, avisos, textos de ayuda emergentes, estados vacíos, texto sobre imagen.
+- **El tema bien aplicado**: colores y tipografía del tema en todos los componentes, sin estilos sueltos ni un componente que ignore el color configurado.
+- **Nada recortado ni desbordado**: sin textos cortados con puntos suspensivos sin forma de leerlos, sin elementos que se salgan de su contenedor y sin desplazamiento horizontal de la página; lo que queda fuera de pantalla tiene que anunciarse (una pista de que hay más).
+- **Clics mínimos**: anota cada acción que pide más pulsaciones, diálogos o pasos de los necesarios, y la que no pide confirmación debiendo pedirla.
+
+Cada incumplimiento es un hallazgo con su valor medido y la pantalla, el modo y la anchura donde sale (cómo medir: `references/auditoria-responsive-clics.md` §3). Si el arreglo es un valor que el stand deja configurar desde su interfaz (un color del tema) y Code te lo autoriza para ese stand, corrígelo tú e informa del antes y el después; lo que es del producto —un componente que no usa el color del tema, una opacidad fija, un recorte— no se toca: es hallazgo para Code.
+
 **Busca los extremos por iniciativa propia, aunque el encargo no los nombre.** El camino feliz casi siempre funciona; los defectos que llegan al usuario viven al lado. En toda operación con dinero, saldo o estados que cambian solos:
 - **Mira la pantalla al volver, antes de recargar.** Apunta qué enseña en los primeros segundos y cuánto tarda en actualizarse sola. Si solo se ve bien tras recargar, es un fallo: el usuario no recarga, cree que no ha pasado nada y repite la operación.
 - **Cruza con el administrador.** Lo que hizo el cliente tiene que verse en las pantallas de gestión —documentos, movimientos, registro de avisos de la pasarela— enlazado a esa operación y no a otra de la misma persona.
